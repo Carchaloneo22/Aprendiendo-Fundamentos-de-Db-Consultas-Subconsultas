@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tutorial de subconsultas en SQL Server: escalares, IN, tablas derivadas, EXISTS, correlacionadas, con 32 ejercicios.">
+<title>Subconsultas · BD·111 · SQL Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600;700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0e2b25; --ink-soft:#3c5a52;
+  --paper:#f2f5ef; --card:#ffffff;
+  --teal:#0f7f68; --teal-deep:#0a5747;
+  --amber:#ffb63d; --amber-deep:#a15c00;
+  --coral:#ff6d5a; --sky:#3f7fe0;
+  --violet:#8b5cf6;
+  --line:#d9e1d7;
+  --shadow:8px 8px 0 rgba(14,43,37,.14);
+  --shadow-sm:4px 4px 0 rgba(14,43,37,.14);
+  --display:'Bricolage Grotesque','Arial Black',sans-serif;
+  --body:'Public Sans','Segoe UI',sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body);color:var(--ink);line-height:1.65;
+  background:
+    radial-gradient(900px 420px at 85% -80px, rgba(139,92,246,.14), transparent 60%),
+    radial-gradient(700px 400px at -10% 35%, rgba(255,182,61,.14), transparent 55%),
+    linear-gradient(rgba(14,43,37,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,43,37,.05) 1px, transparent 1px),
+    var(--paper);
+  background-size:auto,auto,34px 34px,34px 34px,auto;
+}
+section{scroll-margin-top:84px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 1.25rem}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:8px;top:8px;background:var(--amber);color:var(--ink);padding:.5rem .9rem;z-index:99;border-radius:8px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#e9f2ec;border-bottom:4px solid var(--violet);display:flex;align-items:center;flex-wrap:wrap;gap:.6rem 1.4rem;padding:.65rem 1.25rem}
+.brand{display:flex;align-items:center;gap:.6rem;color:#fff;text-decoration:none;font-family:var(--display);font-weight:800;font-size:1.05rem}
+.brand-badge{background:var(--violet);color:#fff;font-family:var(--mono);font-weight:700;padding:.18rem .5rem;border-radius:8px;box-shadow:2px 2px 0 rgba(0,0,0,.4)}
+.brand small{font-family:var(--mono);font-weight:400;font-size:.7rem;color:#9fc3b6;letter-spacing:.12em;text-transform:uppercase}
+.topbar nav{display:flex;flex-wrap:wrap;gap:.15rem;margin-left:auto}
+.topbar nav a{color:#dcebe3;text-decoration:none;font-size:.86rem;font-weight:600;padding:.35rem .75rem;border-radius:999px;transition:background .2s,color .2s}
+.topbar nav a:hover,.topbar nav a:focus-visible{background:rgba(139,92,246,.25);color:#d8c7ff}
+
+.hero{padding:3rem 0 2rem}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:2rem}
+.kicker{font-family:var(--mono);font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--violet);font-weight:700;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
+.blink{display:inline-block;width:.6em;height:1.1em;background:var(--violet);animation:blink 1.1s steps(2) infinite;vertical-align:-.15em}
+@keyframes blink{50%{opacity:0}}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,4.8vw,3.8rem);line-height:1.02;margin-bottom:1.1rem}
+.hl{background:linear-gradient(transparent 60%, rgba(139,92,246,.4) 60%);padding:0 .08em}
+.hl-a{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%);padding:0 .08em}
+.lead{font-size:1.12rem;color:var(--ink-soft);max-width:44rem;margin-bottom:1.4rem}
+.meta-chips{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1rem}
+.chip{font-family:var(--mono);font-size:.74rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;background:#fff;padding:.3rem .75rem;box-shadow:var(--shadow-sm)}
+.trail{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.6rem;max-width:44rem}
+.trail span{font-family:var(--mono);font-size:.66rem;font-weight:700;border-radius:8px;padding:.22rem .55rem;border:1.5px solid var(--ink)}
+.trail .done{background:#d9f2e6;color:var(--teal-deep)}
+.trail .here{background:var(--violet);color:#fff;box-shadow:var(--shadow-sm)}
+.trail .next{background:#fff;color:var(--ink-soft);opacity:.85}
+.ficha{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:.8rem 1.1rem;font-size:.86rem;box-shadow:var(--shadow-sm)}
+.ficha strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--teal-deep)}
+.ficha .blank{display:inline-block;min-width:9rem;border-bottom:2px dotted var(--ink-soft)}
+
+.ticker{overflow:hidden;background:var(--ink);color:#e9f2ec;border-block:3px solid var(--violet);margin-top:2rem}
+.ticker-track{display:flex;width:max-content;animation:scrollX 34s linear infinite;padding:.6rem 0;font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;white-space:nowrap}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.tick-set{display:flex;gap:2.2rem;padding-right:2.2rem}
+.tick-set b{color:#c4b0ff}
+@keyframes scrollX{to{transform:translateX(-50%)}}
+
+.unit{padding:3rem 0}
+.unit-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:.4rem 1.1rem;border-bottom:3px solid var(--ink);padding-bottom:.8rem;margin-bottom:1.8rem}
+.unit-num{font-family:var(--display);font-weight:800;font-size:clamp(2.4rem,5vw,3.4rem);line-height:1;color:rgba(139,92,246,.14);-webkit-text-stroke:2.4px var(--violet)}
+.u2 .unit-num{color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.u3 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber-deep)}
+.u4 .unit-num{color:rgba(63,127,224,.15);-webkit-text-stroke:2.4px var(--sky)}
+.u5 .unit-num{color:rgba(255,109,90,.15);-webkit-text-stroke:2.4px var(--coral)}
+.u6 .unit-num{color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.unit-time{font-family:var(--mono);font-size:.72rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.25rem .7rem;background:#fff;margin-left:auto}
+.unit h2{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,3.2vw,2.2rem);line-height:1.1;margin-bottom:1rem}
+.unit h3{font-family:var(--display);font-weight:800;font-size:1.3rem;margin:2.2rem 0 .8rem}
+.unit h4{font-family:var(--display);font-weight:800;font-size:1.1rem;margin:1.6rem 0 .6rem;color:var(--teal-deep)}
+.unit p{margin-bottom:.9rem;max-width:64rem}
+.unit ul,.unit ol{margin:0 0 1rem 1.4rem}
+.unit li{margin-bottom:.4rem}
+
+.note{border-left:6px solid var(--violet);background:#f3efff;border-radius:0 12px 12px 0;padding:1rem 1.2rem;margin:1.2rem 0;box-shadow:var(--shadow-sm);max-width:64rem}
+.note.tip{border-left-color:var(--teal);background:#eafaf3}
+.note.warn{border-left-color:var(--coral);background:#fff1ee}
+.note .tag{font-family:var(--mono);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:.3rem;color:#6d3fd6}
+.note.tip .tag{color:var(--teal-deep)}.note.warn .tag{color:#c2402f}
+.def-big{font-family:var(--display);font-weight:700;font-size:1.2rem;line-height:1.45;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.4rem 1.6rem;box-shadow:var(--shadow);margin:1.4rem 0;max-width:60rem;position:relative}
+.def-big::before{content:"“";position:absolute;top:-1.4rem;left:1rem;font-family:var(--display);font-size:4rem;color:var(--violet);line-height:1}
+.def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%)}
+
+.table-wrap{overflow-x:auto;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);background:#fff;margin:1.2rem 0;max-width:64rem}
+table.data{width:100%;border-collapse:collapse;font-size:.88rem}
+table.data th{background:var(--teal-deep);color:#fff;text-align:left;padding:.55rem .8rem;font-size:.8rem;letter-spacing:.03em;white-space:nowrap}
+table.data td{padding:.5rem .8rem;border-top:1px solid var(--line);vertical-align:top}
+table.data tbody tr:nth-child(even) td{background:#f6faf6}
+table.data tbody tr:hover td{background:#eef7f0}
+table.data.small{font-size:.8rem}
+table.data.small td,table.data.small th{padding:.4rem .6rem}
+.mono{font-family:var(--mono);font-size:.84em}
+
+.example-label{display:inline-block;font-family:var(--mono);font-size:.7rem;font-weight:700;background:var(--violet);color:#fff;padding:.2rem .6rem;border-radius:6px;margin-bottom:.5rem}
+.example-label.ex2{background:var(--teal)}
+.example-label.ex3{background:var(--sky)}
+.example-label.ex4{background:var(--coral)}
+.example-label.ex5{background:var(--amber-deep)}
+
+.qa{border:2px solid var(--ink);border-radius:12px;background:#fff;margin:1rem 0;box-shadow:var(--shadow-sm);max-width:64rem}
+.qa summary{cursor:pointer;padding:.8rem 1.1rem;font-weight:700;display:flex;align-items:center;gap:.6rem;list-style:none}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::before{content:"▸";color:var(--violet);font-size:1.1rem;transition:transform .25s}
+.qa[open] summary::before{transform:rotate(90deg)}
+.qa summary:hover{background:#f7f4ff}
+.qa>div{padding:.2rem 1.1rem 1.1rem 2.3rem;border-top:2px dashed var(--line)}
+.qa.sol summary::before{color:var(--amber-deep)}
+
+.code{background:#0f2320;color:#dcefe6;border:2px solid var(--ink);border-radius:12px;overflow:hidden;margin:1.2rem 0;box-shadow:var(--shadow);max-width:64rem}
+.code-bar{display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:#0a1a17;border-bottom:1px solid #1e3a34;font-family:var(--mono);font-size:.72rem;color:#9db8ae}
+.code pre{margin:0;padding:1rem 1.2rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;line-height:1.7}
+.kw{color:#ffcf7d;font-weight:600}
+.str{color:#8ee6ad}
+.num{color:#7cc7ff}
+.cm{color:#7fa396;font-style:italic}
+.sub{color:#c4a5ff;font-weight:600}
+.sub2{color:#9ad9ff}
+
+.dark{background:var(--ink);color:#e9f2ec}
+.dark .unit-head{border-bottom-color:var(--violet)}
+.dark .unit-time{background:#16352e;color:#d8c7ff;border-color:#8b5cf6}
+.dark p{color:#cfe2d9}
+.dark h3{color:#ffe1a8}
+.dark h4{color:#d8c7ff}
+.dark .note{background:#16352e;border-left-color:var(--violet);color:#e9f2ec}
+.dark .note .tag{color:#c4b0ff}
+.dark table.data{color:var(--ink)}
+.dark .table-wrap{color:var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.45);border-color:#3a5a52}
+.dark .qa{background:#16352e;border-color:#3a5a52;color:#e9f2ec}
+.dark .qa summary:hover{background:#1d4038}
+.dark .qa>div{border-top-color:#3a5a52;color:#cfe2d9}
+.dark .def-big{background:#16352e;color:#e9f2ec;border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+.dark .code{border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+.dark .example-label{background:#6d3fd6}
+
+.ex-block{border:2px solid var(--ink);border-radius:12px;background:#fff;margin:1.2rem 0;box-shadow:var(--shadow-sm);overflow:hidden;max-width:64rem}
+.ex-head{background:var(--paper);padding:.7rem 1.1rem;border-bottom:2px solid var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:.6rem}
+.ex-head .ex-num{font-family:var(--display);font-weight:800;font-size:1rem;background:var(--violet);color:#fff;border-radius:8px;padding:.15rem .6rem}
+.ex-head .ex-level{font-family:var(--mono);font-size:.68rem;font-weight:700;border-radius:6px;padding:.15rem .5rem;border:1.5px solid var(--ink)}
+.ex-level.easy{background:#d9f2e6;color:var(--teal-deep)}
+.ex-level.med{background:#fff3d9;color:var(--amber-deep)}
+.ex-level.hard{background:#ffd9d3;color:#8a2c1e}
+.ex-body{padding:1rem 1.1rem}
+.ex-body p{margin-bottom:.6rem}
+
+.vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:64rem}
+.vs-card{border:2px solid var(--ink);border-radius:12px;background:#fff;box-shadow:var(--shadow-sm);overflow:hidden}
+.vs-card>header{padding:.5rem .9rem;font-family:var(--mono);font-size:.75rem;font-weight:700;letter-spacing:.05em;border-bottom:2px solid var(--ink)}
+.vs-card.a>header{background:#f3efff;color:#6d3fd6}
+.vs-card.b>header{background:#eafaf3;color:var(--teal-deep)}
+.vs-card .code{margin:0;border:none;border-radius:0;box-shadow:none}
+@media(max-width:760px){.vs-grid{grid-template-columns:1fr}}
+
+footer{background:var(--ink);color:#cfe2d9;margin-top:4rem;border-top:4px solid var(--violet)}
+footer .wrap{padding-top:2.5rem;padding-bottom:2.5rem;display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-start}
+footer .foot-brand{font-family:var(--display);font-weight:800;font-size:1.3rem;color:#fff}
+footer small{display:block;margin-top:.4rem;font-family:var(--mono);font-size:.72rem;color:#9fc3b6;max-width:34rem;line-height:1.7}
+footer .top-link{align-self:center}
+footer .top-link a{color:#d8c7ff;text-decoration:none;font-family:var(--mono);font-size:.85rem;border:2px solid #8b5cf6;border-radius:999px;padding:.5rem 1.1rem;transition:background .2s}
+footer .top-link a:hover{background:rgba(139,92,246,.2)}
+
+@media (max-width:940px){
+  .topbar nav{margin-left:0;width:100%;overflow-x:auto}
+}
+@media print{
+  .topbar,.ticker,.top-link{display:none!important}
+  body{background:#fff}
+  .code,.qa,.ex-block{box-shadow:none;break-inside:avoid}
+  .unit,.hero{padding:1.2rem 0}
+  .code pre{white-space:pre-wrap}
+  a{color:inherit;text-decoration:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="topbar">
+  <a class="brand" href="#inicio"><span class="brand-badge">BD·111</span> Subconsultas <small>· SQL Server</small></a>
+  <nav aria-label="Secciones del tutorial">
+    <a href="#que">¿Qué son?</a>
+    <a href="#escalares">Escalares</a>
+    <a href="#in">IN / ANY / ALL</a>
+    <a href="#from">En FROM</a>
+    <a href="#exists">EXISTS</a>
+    <a href="#correlacionadas">Correlacionadas</a>
+    <a href="#select">En SELECT</a>
+    <a href="#taller">32 Ejercicios</a>
+  </nav>
+</header>
+
+<main id="contenido">
+
+<!-- ═══════════ PORTADA ═══════════ -->
+<section id="inicio" class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker"><span class="blink"></span> Fase 4 · Consultar avanzado · Motor: SQL Server</p>
+      <h1>Preguntas dentro<br>de <span class="hl">otras preguntas.</span></h1>
+      <p class="lead">Con JOIN aprendiste a <strong>cruzar puentes entre tablas</strong>. Hoy aprenderás una técnica diferente: <strong>meter una consulta dentro de otra</strong>. Las subconsultas resuelven problemas que JOIN no puede, como <em>"los productos más caros que el promedio"</em> o <em>"los veterinarios que atendieron una cirugía"</em> — sin saber de antemano cuál es el promedio ni el id de la cirugía.</p>
+      <div class="meta-chips">
+        <span class="chip">⏱ ≈ 5 sesiones</span>
+        <span class="chip">🗄️ Motor: SQL Server</span>
+        <span class="chip">🧩 Tema: Subconsultas</span>
+        <span class="chip">💪 32 ejercicios</span>
+      </div>
+      <div class="trail" aria-label="Progreso del curso">
+        <span class="done">BD·101-109 ✔ Fundamentos</span>
+        <span class="done">BD·110 ✔ JOIN</span>
+        <span class="here">BD·111 ● Estás aquí</span>
+        <span class="next">BD·112 Proyecto final…</span>
+      </div>
+      <div class="ficha" style="margin-top:1rem">
+        <strong>Ficha / Grupo:</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Instructor(a):</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Servidor SQL:</strong> <span class="blank">&nbsp;</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <div class="tick-set">
+        <span><b>subconsulta</b> = SELECT dentro de SELECT</span><span><b>escalar</b>: devuelve un solo valor</span><span><b>columna</b>: devuelve una lista con IN</span><span><b>tabla derivada</b>: va en el FROM</span><span><b>EXISTS</b>: ¿hay alguna fila?</span><span><b>correlacionada</b>: depende de la fila exterior</span><span>paréntesis siempre</span><span>se evalúa de adentro hacia afuera</span><span>JOIN vs subconsulta: dos caminos, un destino</span>
+      </div>
+      <div class="tick-set">
+        <span><b>subconsulta</b> = SELECT dentro de SELECT</span><span><b>escalar</b>: devuelve un solo valor</span><span><b>columna</b>: devuelve una lista con IN</span><span><b>tabla derivada</b>: va en el FROM</span><span><b>EXISTS</b>: ¿hay alguna fila?</span><span><b>correlacionada</b>: depende de la fila exterior</span><span>paréntesis siempre</span><span>se evalúa de adentro hacia afuera</span><span>JOIN vs subconsulta: dos caminos, un destino</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 01 · ¿QUÉ SON? ═══════════ -->
+<section id="que" class="unit u1">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">01</span>
+      <h2>¿Qué es una subconsulta?</h2>
+      <span class="unit-time">⏱ 15 min lectura</span>
+    </div>
+
+    <p>Imagina esta pregunta del dueño de la veterinaria:</p>
+    <div class="def-big">"¿Qué servicios cuestan <strong>más que el precio promedio</strong> de todos los servicios?"</div>
+    <p>Para responderla necesitas <strong>dos pasos</strong>:</p>
+    <ol>
+      <li><strong>Primero</strong> calcular el promedio: <span class="mono">AVG(precio)</span> de todos los servicios.</li>
+      <li><strong>Después</strong> filtrar los servicios cuyo precio sea mayor que ese número.</li>
+    </ol>
+    <p>El problema: <strong>no sabes cuál es el promedio</strong> hasta ejecutar la primera consulta. Aquí es donde la subconsulta entra: la primera consulta vive <strong>dentro</strong> de la segunda.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; primera_subconsulta.sql</div>
+      <pre><span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio &gt; (<span class="sub">SELECT AVG(precio) FROM servicios</span>);</pre>
+    </div>
+    <div class="note"><span class="tag">🧠 Cómo se ejecuta</span>SQL Server resuelve <strong>de adentro hacia afuera</strong>: primero calcula <span class="mono">AVG(precio)</span> (supongamos que da 88750), y luego ejecuta la consulta exterior como si dijera <span class="mono">WHERE precio &gt; 88750</span>.</div>
+
+    <h3>La regla de oro</h3>
+    <ul>
+      <li>Toda subconsulta va <strong>entre paréntesis</strong>.</li>
+      <li>Una subconsulta es un <span class="mono">SELECT</span> completo (puede tener WHERE, GROUP BY, etc.).</li>
+      <li>Puede ir en cuatro lugares: <strong>WHERE</strong>, <strong>FROM</strong>, <strong>SELECT</strong> y <strong>HAVING</strong>.</li>
+      <li>Según cuántos valores devuelve, se llama <strong>escalar</strong> (1 valor), <strong>de columna</strong> (1 columna) o <strong>de tabla</strong> (filas y columnas).</li>
+    </ul>
+
+    <h3>Los tipos que verás en esta entrega</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Tipo</th><th>Devuelve</th><th>Se usa con</th><th>Unidad</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Escalar</strong></td><td>Un solo valor</td><td class="mono">= &gt; &lt; &gt;= &lt;= &lt;&gt;</td><td>Unidad 02</td></tr>
+          <tr><td><strong>De columna</strong></td><td>Una lista de valores</td><td class="mono">IN, ANY, ALL</td><td>Unidad 03</td></tr>
+          <tr><td><strong>Tabla derivada</strong></td><td>Filas y columnas</td><td>En el FROM</td><td>Unidad 04</td></tr>
+          <tr><td><strong>De existencia</strong></td><td>Verdadero / falso</td><td class="mono">EXISTS, NOT EXISTS</td><td>Unidad 05</td></tr>
+          <tr><td><strong>Correlacionada</strong></td><td>Varía por cada fila exterior</td><td>WHERE / SELECT</td><td>Unidad 06</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 02 · ESCALARES ═══════════ -->
+<section id="escalares" class="unit u2">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">02</span>
+      <h2>Subconsultas escalares: un solo valor</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <p>Una subconsulta escalar devuelve <strong>exactamente un valor</strong> (una fila, una columna). Se compara con operadores normales: <span class="mono">= &gt; &lt; &gt;= &lt;= &lt;&gt;</span>.</p>
+
+    <h3>Ejemplos con la veterinaria</h3>
+
+    <span class="example-label">Ejemplo 1: servicios más caros que el promedio</span>
+    <div class="code"><pre><span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio &gt; (<span class="sub">SELECT AVG(precio) FROM servicios</span>);</pre></div>
+
+    <span class="example-label ex2">Ejemplo 2: mascotas más jóvenes que el promedio de edad</span>
+    <div class="code"><pre><span class="kw">SELECT</span> nombre, edad
+<span class="kw">FROM</span> mascotas
+<span class="kw">WHERE</span> edad &lt; (<span class="sub">SELECT AVG(edad) FROM mascotas</span>);</pre></div>
+
+    <span class="example-label ex3">Ejemplo 3: el servicio más caro (usando MAX)</span>
+    <div class="code"><pre><span class="cm">-- Todos los datos del servicio más caro</span>
+<span class="kw">SELECT</span> *
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio = (<span class="sub">SELECT MAX(precio) FROM servicios</span>);</pre></div>
+
+    <span class="example-label ex4">Ejemplo 4: dueños con más mascotas que el promedio</span>
+    <div class="code"><pre><span class="cm">-- Primero cuenta mascotas por dueño, luego compara con el promedio</span>
+<span class="kw">SELECT</span> d.nombre, <span class="kw">COUNT</span>(m.id) <span class="kw">AS</span> total_mascotas
+<span class="kw">FROM</span> duenos d
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">GROUP BY</span> d.nombre
+<span class="kw">HAVING</span> <span class="kw">COUNT</span>(m.id) &gt; (<span class="sub">SELECT AVG(total) FROM (SELECT COUNT(*) AS total FROM mascotas GROUP BY dueño_id) x</span>);</pre></div>
+    <div class="note tip"><span class="tag">💡 Nota</span>Este ejemplo combina una subconsulta en HAVING con una tabla derivada anidada. No te preocupes si se ve complejo: lo desarmamos en la Unidad 04.</div>
+
+    <span class="example-label ex5">Ejemplo 5: citas posteriores a la primera cita registrada</span>
+    <div class="code"><pre><span class="kw">SELECT</span> fecha, mascota_id
+<span class="kw">FROM</span> citas
+<span class="kw">WHERE</span> fecha &gt; (<span class="sub">SELECT MIN(fecha) FROM citas</span>);</pre></div>
+
+    <div class="note warn"><span class="tag">🚨 Cuidado</span>Si la subconsulta escalar devuelve <strong>más de una fila</strong>, SQL Server lanza un error: <span class="mono">"Subquery returned more than 1 value"</span>. Si necesitas comparar contra varios valores, usa <strong>IN</strong> (Unidad 03).</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 03 · IN ANY ALL ═══════════ -->
+<section id="in" class="unit u3">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">03</span>
+      <h2>IN, ANY y ALL: subconsultas que devuelven listas</h2>
+      <span class="unit-time">⏱ 30 min práctica</span>
+    </div>
+
+    <p>Cuando la subconsulta devuelve <strong>varios valores</strong>, no puedes usar <span class="mono">=</span>. Usas <span class="mono">IN</span> para "está en la lista", <span class="mono">ANY</span> para "cumple con al menos uno" y <span class="mono">ALL</span> para "cumple con todos".</p>
+
+    <h3>IN: "está en la lista"</h3>
+
+    <span class="example-label">Ejemplo 1: mascotas que han tenido al menos una cita</span>
+    <div class="code"><pre><span class="kw">SELECT</span> nombre
+<span class="kw">FROM</span> mascotas
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="sub">SELECT DISTINCT mascota_id FROM citas</span>);</pre></div>
+    <p>La subconsulta devuelve una lista de ids de mascotas con citas (por ejemplo: 1, 2, 3, 4, 5). La consulta exterior muestra las mascotas cuyo id está en esa lista.</p>
+
+    <span class="example-label ex2">Ejemplo 2: dueños que tienen mascotas</span>
+    <div class="code"><pre><span class="kw">SELECT</span> nombre
+<span class="kw">FROM</span> duenos
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="sub">SELECT dueño_id FROM mascotas</span>);</pre></div>
+
+    <span class="example-label ex3">Ejemplo 3: servicios que se prestaron el 2026-09-01</span>
+    <div class="code"><pre><span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="sub">SELECT servicio_id FROM citas WHERE fecha = '2026-09-01'</span>);</pre></div>
+
+    <span class="example-label ex4">Ejemplo 4: veterinarios que atendieron una cirugía</span>
+    <div class="code"><pre><span class="cm">-- Primero encuentra el id del servicio 'Cirugía'</span>
+<span class="kw">SELECT</span> nombre, especialidad
+<span class="kw">FROM</span> veterinarios
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="sub">SELECT veterinario_id FROM citas
+              WHERE servicio_id = (SELECT id FROM servicios WHERE nombre = 'Cirugía')</span>);</pre></div>
+    <p>Aquí hay <strong>dos subconsultas anidadas</strong>: la interior encuentra el id de Cirugía, la intermedia encuentra los veterinarios que la atendieron, y la exterior muestra sus datos.</p>
+
+    <h3>NOT IN: "NO está en la lista"</h3>
+
+    <span class="example-label ex5">Ejemplo 5: mascotas que NUNCA han tenido citas</span>
+    <div class="code"><pre><span class="kw">SELECT</span> nombre
+<span class="kw">FROM</span> mascotas
+<span class="kw">WHERE</span> id <span class="kw">NOT IN</span> (<span class="sub">SELECT mascota_id FROM citas</span>);</pre></div>
+
+    <h3>ANY y ALL</h3>
+
+    <span class="example-label">Ejemplo 6: servicios más caros que ALGÚN servicio prestado el día 1</span>
+    <div class="code"><pre><span class="cm">-- ANY: basta con ser mayor que uno de la lista</span>
+<span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio &gt; <span class="kw">ANY</span> (<span class="sub">SELECT s.precio FROM servicios s
+                     INNER JOIN citas c ON c.servicio_id = s.id
+                     WHERE c.fecha = '2026-09-01'</span>);</pre></div>
+
+    <span class="example-label ex2">Ejemplo 7: servicios más caros que TODOS los del día 1</span>
+    <div class="code"><pre><span class="cm">-- ALL: debe ser mayor que cada uno de la lista</span>
+<span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio &gt; <span class="kw">ALL</span> (<span class="sub">SELECT s.precio FROM servicios s
+                     INNER JOIN citas c ON c.servicio_id = s.id
+                     WHERE c.fecha = '2026-09-01'</span>);</pre></div>
+
+    <div class="table-wrap">
+      <table class="data small">
+        <thead><tr><th>Operador</th><th>Significado</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">x IN (lista)</td><td>x es igual a algún valor de la lista</td><td class="mono">id IN (1, 3, 5)</td></tr>
+          <tr><td class="mono">x NOT IN (lista)</td><td>x no es igual a ningún valor</td><td class="mono">id NOT IN (2, 4)</td></tr>
+          <tr><td class="mono">x &gt; ANY (lista)</td><td>x es mayor que el mínimo de la lista</td><td class="mono">precio &gt; ANY (100, 200)</td></tr>
+          <tr><td class="mono">x &gt; ALL (lista)</td><td>x es mayor que el máximo de la lista</td><td class="mono">precio &gt; ALL (100, 200)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note warn"><span class="tag">🚨 Cuidado con NOT IN y NULL</span>Si la subconsulta de <span class="mono">NOT IN</span> devuelve algún <strong>NULL</strong>, el resultado completo queda vacío (porque <span class="mono">x NOT IN (1, NULL)</span> nunca puede ser verdadero). Si la columna puede tener NULL, filtra dentro de la subconsulta: <span class="mono">WHERE columna IS NOT NULL</span>, o usa <strong>NOT EXISTS</strong> (Unidad 05).</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 04 · EN FROM ═══════════ -->
+<section id="from" class="unit u4">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">04</span>
+      <h2>Tablas derivadas: subconsultas en el FROM</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <p>Una subconsulta en el <span class="mono">FROM</span> se comporta como una <strong>tabla virtual</strong> que solo existe durante la consulta. Se llama <strong>tabla derivada</strong> y <strong>siempre necesita un alias</strong>.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; sintaxis_derivada.sql</div>
+      <pre><span class="kw">SELECT</span> columnas
+<span class="kw">FROM</span> (<span class="sub">SELECT ... FROM ... GROUP BY ...</span>) <span class="kw">AS</span> alias
+<span class="kw">WHERE</span> ...;</pre>
+    </div>
+
+    <h3>Ejemplos con la veterinaria</h3>
+
+    <span class="example-label">Ejemplo 1: dueños con más de 1 mascota</span>
+    <div class="code"><pre><span class="cm">-- La tabla derivada cuenta mascotas por dueño;</span>
+<span class="cm">-- la consulta exterior filtra los que tienen más de 1</span>
+<span class="kw">SELECT</span> x.dueño_id, x.total_mascotas
+<span class="kw">FROM</span> (<span class="sub">SELECT dueño_id, COUNT(*) AS total_mascotas
+      FROM mascotas
+      GROUP BY dueño_id</span>) <span class="kw">AS</span> x
+<span class="kw">WHERE</span> x.total_mascotas &gt; <span class="num">1</span>;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 2: promedio de mascotas por dueño (sobre la tabla derivada)</span>
+    <div class="code"><pre><span class="cm">-- Ahora calculamos el promedio DE LOS TOTALES</span>
+<span class="kw">SELECT</span> <span class="kw">AVG</span>(x.total_mascotas) <span class="kw">AS</span> promedio_mascotas_por_dueno
+<span class="kw">FROM</span> (<span class="sub">SELECT dueño_id, COUNT(*) AS total_mascotas
+      FROM mascotas
+      GROUP BY dueño_id</span>) <span class="kw">AS</span> x;</pre></div>
+
+    <span class="example-label ex3">Ejemplo 3: veterinarios con más de 3 citas</span>
+    <div class="code"><pre><span class="kw">SELECT</span> x.veterinario_id, x.total_citas
+<span class="kw">FROM</span> (<span class="sub">SELECT veterinario_id, COUNT(*) AS total_citas
+      FROM citas
+      GROUP BY veterinario_id</span>) <span class="kw">AS</span> x
+<span class="kw">WHERE</span> x.total_citas &gt; <span class="num">3</span>;</pre></div>
+
+    <span class="example-label ex4">Ejemplo 4: tabla derivada unida con JOIN a una tabla real</span>
+    <div class="code"><pre><span class="cm">-- Muestra el NOMBRE del dueño junto con su total de mascotas</span>
+<span class="kw">SELECT</span> d.nombre <span class="kw">AS</span> dueño, x.total_mascotas
+<span class="kw">FROM</span> duenos d
+<span class="kw">INNER JOIN</span> (<span class="sub">SELECT dueño_id, COUNT(*) AS total_mascotas
+            FROM mascotas
+            GROUP BY dueño_id</span>) <span class="kw">AS</span> x <span class="kw">ON</span> x.dueño_id = d.id;</pre></div>
+    <p>Esto es poderoso: la tabla derivada <span class="mono">x</span> se une a la tabla real <span class="mono">duenos</span> como si fuera una tabla más.</p>
+
+    <span class="example-label ex5">Ejemplo 5: el total facturado por servicio, ordenado</span>
+    <div class="code"><pre><span class="kw">SELECT</span> x.servicio_id, s.nombre, x.veces, x.total
+<span class="kw">FROM</span> (<span class="sub">SELECT servicio_id, COUNT(*) AS veces, SUM(servicio_id) AS total
+      FROM citas GROUP BY servicio_id</span>) <span class="kw">AS</span> x
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> s.id = x.servicio_id
+<span class="kw">ORDER BY</span> x.veces <span class="kw">DESC</span>;</pre></div>
+
+    <div class="note tip"><span class="tag">💡 ¿Cuándo usar tabla derivada?</span>Cuando necesitas <strong>filtrar o calcular sobre el resultado de un GROUP BY</strong> y HAVING se queda corto, o cuando quieres reutilizar un resultado agregado en varios lugares de la consulta. También es útil para "aplanar" consultas muy anidadas.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 05 · EXISTS (OSCURA) ═══════════ -->
+<section id="exists" class="unit u5 dark">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">05</span>
+      <h2>EXISTS y NOT EXISTS: ¿hay alguna fila?</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <p><span class="mono">EXISTS</span> no devuelve datos: devuelve <strong>verdadero o falso</strong>. Responde a la pregunta "¿existe al menos una fila que cumpla esta condición?". Es la herramienta ideal para preguntas de <strong>existencia</strong>.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; sintaxis_exists.sql</div>
+      <pre><span class="kw">SELECT</span> columnas
+<span class="kw">FROM</span> tabla_exterior e
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="sub">SELECT 1 FROM tabla_interior i WHERE i.fk = e.pk</span>);</pre>
+    </div>
+
+    <h3>Ejemplos con la veterinaria</h3>
+
+    <span class="example-label">Ejemplo 1: dueños que tienen al menos una mascota</span>
+    <div class="code"><pre><span class="kw">SELECT</span> d.nombre
+<span class="kw">FROM</span> duenos d
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="sub">SELECT 1 FROM mascotas m WHERE m.dueño_id = d.id</span>);</pre></div>
+    <p>Para cada dueño, la subconsulta pregunta: "¿hay alguna mascota con este dueño_id?". Si hay al menos una, el dueño aparece en el resultado.</p>
+
+    <span class="example-label ex2">Ejemplo 2: mascotas que han tenido al menos una cita</span>
+    <div class="code"><pre><span class="kw">SELECT</span> m.nombre
+<span class="kw">FROM</span> mascotas m
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="sub">SELECT 1 FROM citas c WHERE c.mascota_id = m.id</span>);</pre></div>
+
+    <span class="example-label ex3">Ejemplo 3: servicios que se han prestado al menos una vez</span>
+    <div class="code"><pre><span class="kw">SELECT</span> s.nombre, s.precio
+<span class="kw">FROM</span> servicios s
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="sub">SELECT 1 FROM citas c WHERE c.servicio_id = s.id</span>);</pre></div>
+
+    <span class="example-label ex4">Ejemplo 4: veterinarios que atendieron al menos una cirugía</span>
+    <div class="code"><pre><span class="kw">SELECT</span> v.nombre, v.especialidad
+<span class="kw">FROM</span> veterinarios v
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="sub">SELECT 1 FROM citas c
+               INNER JOIN servicios s ON s.id = c.servicio_id
+               WHERE c.veterinario_id = v.id AND s.nombre = 'Cirugía'</span>);</pre></div>
+
+    <h3>NOT EXISTS: los que NO tienen</h3>
+
+    <span class="example-label ex5">Ejemplo 5: dueños SIN mascotas</span>
+    <div class="code"><pre><span class="kw">SELECT</span> d.nombre
+<span class="kw">FROM</span> duenos d
+<span class="kw">WHERE</span> <span class="kw">NOT EXISTS</span> (<span class="sub">SELECT 1 FROM mascotas m WHERE m.dueño_id = d.id</span>);</pre></div>
+
+    <span class="example-label">Ejemplo 6: mascotas SIN citas</span>
+    <div class="code"><pre><span class="kw">SELECT</span> m.nombre
+<span class="kw">FROM</span> mascotas m
+<span class="kw">WHERE</span> <span class="kw">NOT EXISTS</span> (<span class="sub">SELECT 1 FROM citas c WHERE c.mascota_id = m.id</span>);</pre></div>
+
+    <span class="example-label ex2">Ejemplo 7: servicios que NUNCA se prestaron</span>
+    <div class="code"><pre><span class="kw">SELECT</span> s.nombre
+<span class="kw">FROM</span> servicios s
+<span class="kw">WHERE</span> <span class="kw">NOT EXISTS</span> (<span class="sub">SELECT 1 FROM citas c WHERE c.servicio_id = s.id</span>);</pre></div>
+
+    <h3>EXISTS vs IN vs LEFT JOIN + IS NULL</h3>
+    <p>La pregunta "dueños con mascotas" se puede resolver de tres formas. Mira la equivalencia:</p>
+    <div class="table-wrap">
+      <table class="data small">
+        <thead><tr><th>Enfoque</th><th>Consulta</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">EXISTS</td><td class="mono">WHERE EXISTS (SELECT 1 FROM mascotas m WHERE m.dueño_id = d.id)</td></tr>
+          <tr><td class="mono">IN</td><td class="mono">WHERE d.id IN (SELECT dueño_id FROM mascotas)</td></tr>
+          <tr><td class="mono">JOIN</td><td class="mono">INNER JOIN mascotas m ON m.dueño_id = d.id (con DISTINCT si hace falta)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note"><span class="tag">🤓 ¿Cuál es mejor?</span>Las tres son correctas. <strong>EXISTS</strong> suele ser la más rápida cuando la tabla interior es grande, porque deja de buscar apenas encuentra la primera coincidencia. <strong>IN</strong> es más legible para listas pequeñas. <strong>JOIN</strong> es mejor cuando necesitas columnas de la segunda tabla en el resultado. En SQL Server moderno, el optimizador suele elegir el mismo plan para las tres.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 06 · CORRELACIONADAS ═══════════ -->
+<section id="correlacionadas" class="unit u6">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">06</span>
+      <h2>Subconsultas correlacionadas: dependen de cada fila</h2>
+      <span class="unit-time">⏱ 30 min práctica</span>
+    </div>
+
+    <p>Una subconsulta normal se ejecuta <strong>una sola vez</strong> y su resultado se usa para toda la consulta. Una subconsulta <strong>correlacionada</strong> se ejecuta <strong>una vez por cada fila</strong> de la consulta exterior, porque hace referencia a una columna de esa fila exterior.</p>
+
+    <div class="def-big">La señal para reconocerla: la subconsulta <strong>usa una columna de la tabla exterior</strong> (por ejemplo, <span class="mono">WHERE m.dueño_id = d.id</span>, donde <span class="mono">d</span> viene de afuera).</div>
+
+    <h3>Ejemplos con la veterinaria</h3>
+
+    <span class="example-label">Ejemplo 1: dueños con más mascotas que el dueño promedio... por fila</span>
+    <div class="code"><pre><span class="cm">-- Para CADA dueño, cuenta cuántas mascotas tiene</span>
+<span class="kw">SELECT</span> d.nombre,
+       (<span class="sub">SELECT COUNT(*) FROM mascotas m WHERE m.dueño_id = d.id</span>) <span class="kw">AS</span> total_mascotas
+<span class="kw">FROM</span> duenos d;</pre></div>
+    <p>La subconsulta se ejecuta una vez por cada dueño: primero para Ana, luego para Bruno, luego para Carla... El alias <span class="mono">d</span> de afuera es la correlación.</p>
+
+    <span class="example-label ex2">Ejemplo 2: mascotas con más citas que la mascota promedio</span>
+    <div class="code"><pre><span class="cm">-- Subconsulta correlacionada dentro de otra subconsulta escalar</span>
+<span class="kw">SELECT</span> m.nombre
+<span class="kw">FROM</span> mascotas m
+<span class="kw">WHERE</span> (<span class="sub">SELECT COUNT(*) FROM citas c WHERE c.mascota_id = m.id</span>) &gt;
+      (<span class="sub">SELECT AVG(total) FROM (SELECT COUNT(*) AS total FROM citas GROUP BY mascota_id) x</span>);</pre></div>
+
+    <span class="example-label ex3">Ejemplo 3: la cita más reciente de cada mascota</span>
+    <div class="code"><pre><span class="cm">-- Para cada mascota, muestra solo su cita más reciente</span>
+<span class="kw">SELECT</span> c.*
+<span class="kw">FROM</span> citas c
+<span class="kw">WHERE</span> c.fecha = (<span class="sub">SELECT MAX(c2.fecha) FROM citas c2 WHERE c2.mascota_id = c.mascota_id</span>);</pre></div>
+    <p>Este es un patrón clásico: para cada fila de <span class="mono">citas</span>, la subconsulta busca el máximo de fecha de esa misma mascota. Solo se conservan las filas donde la fecha coincide con el máximo.</p>
+
+    <span class="example-label ex4">Ejemplo 4: el servicio más caro prestado por cada veterinario</span>
+    <div class="code"><pre><span class="kw">SELECT</span> v.nombre <span class="kw">AS</span> veterinario,
+       (<span class="sub">SELECT MAX(s.precio) FROM citas c
+        INNER JOIN servicios s ON s.id = c.servicio_id
+        WHERE c.veterinario_id = v.id</span>) <span class="kw">AS</span> servicio_mas_caro
+<span class="kw">FROM</span> veterinarios v;</pre></div>
+
+    <h3>Correlacionadas con EXISTS</h3>
+    <p>En realidad, <strong>todos los EXISTS de la Unidad 05 son correlacionados</strong>: la subconsulta siempre referencia la tabla exterior. La diferencia es que EXISTS solo pregunta por existencia, mientras que las correlacionadas de esta unidad devuelven valores concretos (contar, máximo, promedio...).</p>
+
+    <div class="note warn"><span class="tag">⚠️ Rendimiento</span>Las subconsultas correlacionadas se ejecutan una vez por fila exterior. Con 1000 dueños, la subconsulta corre 1000 veces. Para pocos datos está bien; para millones de filas, a veces conviene reescribirla como JOIN + GROUP BY. En este curso no optimizaremos, pero tenlo presente.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 07 · EN SELECT Y VS JOIN ═══════════ -->
+<section id="select" class="unit u7">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">07</span>
+      <h2>Subconsultas en el SELECT y comparación final con JOIN</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <p>Una subconsulta puede ir en la lista del <span class="mono">SELECT</span> como si fuera una columna calculada. Debe ser <strong>escalar</strong> (devolver un solo valor por fila).</p>
+
+    <h3>Ejemplos</h3>
+
+    <span class="example-label">Ejemplo 1: cada servicio con la diferencia frente al promedio</span>
+    <div class="code"><pre><span class="kw">SELECT</span> nombre,
+       precio,
+       precio - (<span class="sub">SELECT AVG(precio) FROM servicios</span>) <span class="kw">AS</span> diferencia_vs_promedio
+<span class="kw">FROM</span> servicios;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 2: cada dueño con su total de mascotas como columna</span>
+    <div class="code"><pre><span class="kw">SELECT</span> d.nombre,
+       (<span class="sub">SELECT COUNT(*) FROM mascotas m WHERE m.dueño_id = d.id</span>) <span class="kw">AS</span> total_mascotas
+<span class="kw">FROM</span> duenos d;</pre></div>
+
+    <span class="example-label ex3">Ejemplo 3: cada cita con el nombre de la mascota (versión subconsulta)</span>
+    <div class="code"><pre><span class="kw">SELECT</span> c.fecha,
+       (<span class="sub">SELECT m.nombre FROM mascotas m WHERE m.id = c.mascota_id</span>) <span class="kw">AS</span> mascota
+<span class="kw">FROM</span> citas c;</pre></div>
+
+    <h3>JOIN vs subconsulta: el mismo problema, dos caminos</h3>
+    <p>Pregunta: <em>"mascotas que han tenido citas"</em>. Mira las dos soluciones lado a lado:</p>
+
+    <div class="vs-grid">
+      <div class="vs-card a">
+        <header>CON JOIN (BD·110)</header>
+        <div class="code"><pre><span class="kw">SELECT DISTINCT</span> m.nombre
+<span class="kw">FROM</span> mascotas m
+<span class="kw">INNER JOIN</span> citas c
+  <span class="kw">ON</span> c.mascota_id = m.id;</pre></div>
+      </div>
+      <div class="vs-card b">
+        <header>CON SUBCONSULTA (BD·111)</header>
+        <div class="code"><pre><span class="kw">SELECT</span> m.nombre
+<span class="kw">FROM</span> mascotas m
+<span class="kw">WHERE</span> m.id <span class="kw">IN</span> (
+  <span class="sub">SELECT mascota_id FROM citas</span>);</pre></div>
+      </div>
+    </div>
+
+    <h3>¿Cuándo usar cada una?</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Situación</th><th>Mejor opción</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td>Necesitas columnas de ambas tablas en el resultado</td><td><strong>JOIN</strong></td><td>La subconsulta escalar en SELECT es más limitada.</td></tr>
+          <tr><td>Solo necesitas saber si existe correspondencia</td><td><strong>EXISTS / IN</strong></td><td>Más claro y a veces más rápido.</td></tr>
+          <tr><td>Comparas contra un agregado (promedio, máximo)</td><td><strong>Subconsulta</strong></td><td>JOIN no puede calcular el agregado "global" fácilmente.</td></tr>
+          <tr><td>Necesitas el "máximo por grupo"</td><td><strong>Correlacionada</strong> o tabla derivada</td><td>JOIN simple no resuelve el "por cada uno".</td></tr>
+          <tr><td>Unes 4-5 tablas</td><td><strong>JOIN</strong></td><td>Más legible que anidar subconsultas.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note tip"><span class="tag">💡 Regla práctica</span>Si la pregunta dice <em>"junto con"</em>, <em>"y su..."</em> → <strong>JOIN</strong>. Si dice <em>"más que el promedio"</em>, <em>"que tienen..."</em>, <em>"los que nunca..."</em> → <strong>subconsulta</strong>. En la práctica profesional usarás ambas constantemente, a veces mezcladas en la misma consulta.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 08 · TALLER 32 EJERCICIOS ═══════════ -->
+<section id="taller" class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <h2>Taller: 32 ejercicios de subconsultas</h2>
+      <span class="unit-time">⏱ 240 min · laboratorio</span>
+    </div>
+    <p>Seis bloques por tipo de subconsulta, de fácil a difícil. Trabaja sobre las tablas de la Veterinaria Huellitas (BD·109). <strong>Intenta cada ejercicio antes de abrir la solución.</strong></p>
+
+    <h3>Bloque A: escalares en WHERE (1-6)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">1</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Servicios con precio superior al precio promedio de todos los servicios.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio &gt; (<span class="sub">SELECT AVG(precio) FROM servicios</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">2</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Servicios con precio inferior al precio promedio.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio &lt; (<span class="sub">SELECT AVG(precio) FROM servicios</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">3</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Mascotas con edad superior a la edad promedio de todas las mascotas.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre, edad
+<span class="kw">FROM</span> mascotas
+<span class="kw">WHERE</span> edad &gt; (<span class="sub">SELECT AVG(edad) FROM mascotas</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">4</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Todos los datos del servicio más barato.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> *
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio = (<span class="sub">SELECT MIN(precio) FROM servicios</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">5</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Citas realizadas después de la fecha promedio de todas las citas. (pista: promedio de fechas no existe directamente; usa la fecha de la primera cita como referencia con MIN, o simplemente después de la primera cita).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="cm">-- Citas posteriores a la primera cita registrada</span>
+<span class="kw">SELECT</span> fecha, mascota_id
+<span class="kw">FROM</span> citas
+<span class="kw">WHERE</span> fecha &gt; (<span class="sub">SELECT MIN(fecha) FROM citas</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">6</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Servicios cuyo precio está entre el mínimo y el promedio (inclusive).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio <span class="kw">BETWEEN</span> (<span class="sub">SELECT MIN(precio) FROM servicios</span>)
+                  <span class="kw">AND</span> (<span class="sub">SELECT AVG(precio) FROM servicios</span>);</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque B: IN / NOT IN (7-12)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">7</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Mascotas que han tenido al menos una cita.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre
+<span class="kw">FROM</span> mascotas
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="sub">SELECT DISTINCT mascota_id FROM citas</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">8</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Mascotas que NUNCA han tenido citas.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre
+<span class="kw">FROM</span> mascotas
+<span class="kw">WHERE</span> id <span class="kw">NOT IN</span> (<span class="sub">SELECT mascota_id FROM citas</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">9</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Dueños que tienen al menos una mascota registrada.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre
+<span class="kw">FROM</span> duenos
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="sub">SELECT dueño_id FROM mascotas</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">10</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Servicios que se prestaron el día 2026-09-03.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="sub">SELECT servicio_id FROM citas WHERE fecha = '2026-09-03'</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">11</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Veterinarios que atendieron al menos una consulta general.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre
+<span class="kw">FROM</span> veterinarios
+<span class="kw">WHERE</span> id <span class="kw">IN</span> (<span class="sub">SELECT veterinario_id FROM citas
+              WHERE servicio_id = (SELECT id FROM servicios WHERE nombre = 'Consulta general')</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">12</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Mascotas de dueños cuyo nombre empieza con "A" o "B".</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre
+<span class="kw">FROM</span> mascotas
+<span class="kw">WHERE</span> dueño_id <span class="kw">IN</span> (<span class="sub">SELECT id FROM duenos WHERE nombre LIKE 'A%' OR nombre LIKE 'B%'</span>);</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque C: tablas derivadas en FROM (13-17)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">13</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Dueños con más de 1 mascota, mostrando el id del dueño y el total.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> x.dueño_id, x.total_mascotas
+<span class="kw">FROM</span> (<span class="sub">SELECT dueño_id, COUNT(*) AS total_mascotas
+      FROM mascotas GROUP BY dueño_id</span>) <span class="kw">AS</span> x
+<span class="kw">WHERE</span> x.total_mascotas &gt; <span class="num">1</span>;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">14</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Veterinarios con más de 3 citas, mostrando el id y el total.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> x.veterinario_id, x.total_citas
+<span class="kw">FROM</span> (<span class="sub">SELECT veterinario_id, COUNT(*) AS total_citas
+      FROM citas GROUP BY veterinario_id</span>) <span class="kw">AS</span> x
+<span class="kw">WHERE</span> x.total_citas &gt; <span class="num">3</span>;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">15</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>El promedio de mascotas por dueño (calculado sobre una tabla derivada).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> <span class="kw">AVG</span>(x.total_mascotas) <span class="kw">AS</span> promedio
+<span class="kw">FROM</span> (<span class="sub">SELECT dueño_id, COUNT(*) AS total_mascotas
+      FROM mascotas GROUP BY dueño_id</span>) <span class="kw">AS</span> x;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">16</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Muestra el NOMBRE del dueño junto con su total de mascotas, uniendo la tabla derivada con duenos.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre, x.total_mascotas
+<span class="kw">FROM</span> duenos d
+<span class="kw">INNER JOIN</span> (<span class="sub">SELECT dueño_id, COUNT(*) AS total_mascotas
+            FROM mascotas GROUP BY dueño_id</span>) <span class="kw">AS</span> x <span class="kw">ON</span> x.dueño_id = d.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">17</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Servicios con más de 2 citas, mostrando el nombre del servicio y el total de veces prestado.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> s.nombre, x.veces
+<span class="kw">FROM</span> servicios s
+<span class="kw">INNER JOIN</span> (<span class="sub">SELECT servicio_id, COUNT(*) AS veces
+            FROM citas GROUP BY servicio_id</span>) <span class="kw">AS</span> x <span class="kw">ON</span> x.servicio_id = s.id
+<span class="kw">WHERE</span> x.veces &gt; <span class="num">2</span>;</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque D: EXISTS / NOT EXISTS (18-22)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">18</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Dueños que tienen al menos una mascota (con EXISTS).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre
+<span class="kw">FROM</span> duenos d
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="sub">SELECT 1 FROM mascotas m WHERE m.dueño_id = d.id</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">19</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Dueños SIN ninguna mascota (con NOT EXISTS).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre
+<span class="kw">FROM</span> duenos d
+<span class="kw">WHERE</span> <span class="kw">NOT EXISTS</span> (<span class="sub">SELECT 1 FROM mascotas m WHERE m.dueño_id = d.id</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">20</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Mascotas que han tenido al menos una cita (con EXISTS).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre
+<span class="kw">FROM</span> mascotas m
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="sub">SELECT 1 FROM citas c WHERE c.mascota_id = m.id</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">21</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Servicios que NUNCA se han prestado (con NOT EXISTS).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> s.nombre
+<span class="kw">FROM</span> servicios s
+<span class="kw">WHERE</span> <span class="kw">NOT EXISTS</span> (<span class="sub">SELECT 1 FROM citas c WHERE c.servicio_id = s.id</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">22</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Veterinarios que atendieron al menos una cirugía (con EXISTS y JOIN dentro de la subconsulta).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> v.nombre
+<span class="kw">FROM</span> veterinarios v
+<span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="sub">SELECT 1 FROM citas c
+               INNER JOIN servicios s ON s.id = c.servicio_id
+               WHERE c.veterinario_id = v.id AND s.nombre = 'Cirugía'</span>);</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque E: correlacionadas y en SELECT (23-28)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">23</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Cada dueño con su número de mascotas como columna (subconsulta en SELECT).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre,
+       (<span class="sub">SELECT COUNT(*) FROM mascotas m WHERE m.dueño_id = d.id</span>) <span class="kw">AS</span> total_mascotas
+<span class="kw">FROM</span> duenos d;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">24</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Cada servicio con la diferencia entre su precio y el precio promedio.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio,
+       precio - (<span class="sub">SELECT AVG(precio) FROM servicios</span>) <span class="kw">AS</span> diferencia
+<span class="kw">FROM</span> servicios;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">25</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Cada mascota con su número total de citas como columna.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre,
+       (<span class="sub">SELECT COUNT(*) FROM citas c WHERE c.mascota_id = m.id</span>) <span class="kw">AS</span> total_citas
+<span class="kw">FROM</span> mascotas m;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">26</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>La cita más reciente de cada mascota (todas las columnas de la cita).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.*
+<span class="kw">FROM</span> citas c
+<span class="kw">WHERE</span> c.fecha = (<span class="sub">SELECT MAX(c2.fecha) FROM citas c2 WHERE c2.mascota_id = c.mascota_id</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">27</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Cada veterinario con el precio del servicio más caro que ha atendido.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> v.nombre,
+       (<span class="sub">SELECT MAX(s.precio) FROM citas c
+        INNER JOIN servicios s ON s.id = c.servicio_id
+        WHERE c.veterinario_id = v.id</span>) <span class="kw">AS</span> servicio_mas_caro
+<span class="kw">FROM</span> veterinarios v;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">28</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Cada cita mostrando el nombre de la mascota como columna calculada (sin JOIN).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha,
+       (<span class="sub">SELECT m.nombre FROM mascotas m WHERE m.id = c.mascota_id</span>) <span class="kw">AS</span> mascota
+<span class="kw">FROM</span> citas c;</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque F: retos finales (29-32)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">29</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>🏆 Dueños cuyo gasto total supera el gasto promedio de todos los dueños. (pista: necesitas una tabla derivada para el gasto por dueño, y otra subconsulta para el promedio).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> x.dueño_id, x.total_gastado
+<span class="kw">FROM</span> (<span class="sub">SELECT m.dueño_id, SUM(s.precio) AS total_gastado
+      FROM citas c
+      INNER JOIN mascotas m ON m.id = c.mascota_id
+      INNER JOIN servicios s ON s.id = c.servicio_id
+      GROUP BY m.dueño_id</span>) <span class="kw">AS</span> x
+<span class="kw">WHERE</span> x.total_gastado &gt; (<span class="sub">SELECT AVG(total_gastado) FROM (
+        SELECT SUM(s.precio) AS total_gastado
+        FROM citas c
+        INNER JOIN mascotas m ON m.id = c.mascota_id
+        INNER JOIN servicios s ON s.id = c.servicio_id
+        GROUP BY m.dueño_id) y</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">30</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>🏆 Mascotas con más citas que la mascota con más citas del promedio. Es decir: mascotas cuyo total de citas supera el promedio de citas por mascota.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre,
+       (<span class="sub">SELECT COUNT(*) FROM citas c WHERE c.mascota_id = m.id</span>) <span class="kw">AS</span> total_citas
+<span class="kw">FROM</span> mascotas m
+<span class="kw">WHERE</span> (<span class="sub">SELECT COUNT(*) FROM citas c WHERE c.mascota_id = m.id</span>) &gt;
+      (<span class="sub">SELECT AVG(total) FROM (SELECT COUNT(*) AS total FROM citas GROUP BY mascota_id) x</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">31</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>🏆 Servicios cuyo precio es mayor que el precio de TODOS los servicios prestados el 2026-09-01 (usa ALL).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio
+<span class="kw">FROM</span> servicios
+<span class="kw">WHERE</span> precio &gt; <span class="kw">ALL</span> (<span class="sub">SELECT s.precio FROM servicios s
+                     INNER JOIN citas c ON c.servicio_id = s.id
+                     WHERE c.fecha = '2026-09-01'</span>);</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">32</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>🏆 Reto final: genera un reporte con cada dueño, su número de mascotas, su número total de citas y su gasto total. Incluye los dueños sin mascotas (todo en 0). Usa subconsultas en el SELECT.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre,
+       (<span class="sub">SELECT COUNT(*) FROM mascotas m WHERE m.dueño_id = d.id</span>) <span class="kw">AS</span> total_mascotas,
+       (<span class="sub">SELECT COUNT(*) FROM citas c
+        INNER JOIN mascotas m ON m.id = c.mascota_id
+        WHERE m.dueño_id = d.id</span>) <span class="kw">AS</span> total_citas,
+       <span class="kw">ISNULL</span>((<span class="sub">SELECT SUM(s.precio) FROM citas c
+        INNER JOIN mascotas m ON m.id = c.mascota_id
+        INNER JOIN servicios s ON s.id = c.servicio_id
+        WHERE m.dueño_id = d.id</span>), <span class="num">0</span>) <span class="kw">AS</span> gasto_total
+<span class="kw">FROM</span> duenos d;</pre></div>
+      <p>Este reporte muestra a todos los dueños, incluso los que no tienen mascotas. Las tres columnas calculadas son subconsultas correlacionadas en el SELECT. Si resolviste esto, dominas las subconsultas. 🎉</p></div></details>
+    </div></div>
+
+    <h3 style="margin-top:2.5rem">Autoevaluación</h3>
+    <ul class="tick">
+      <li>Resolví los 6 ejercicios del bloque A (escalares).</li>
+      <li>Resolví los 6 ejercicios del bloque B (IN / NOT IN).</li>
+      <li>Resolví los 5 ejercicios del bloque C (tablas derivadas).</li>
+      <li>Resolví los 5 ejercicios del bloque D (EXISTS).</li>
+      <li>Resolví al menos 4 ejercicios del bloque E (correlacionadas).</li>
+      <li>Resolví al menos 2 de los 4 retos finales.</li>
+      <li>Sé explicar cuándo usar subconsulta y cuándo JOIN.</li>
+      <li>Entiendo por qué NOT IN con NULL puede dar resultado vacío.</li>
+    </ul>
+    <div class="score-note">
+      <span class="s1" style="font-size:.85rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.35rem .85rem;background:#d9f2e6">7–8 ✔ ¡Dominas subconsultas! Listo para BD·112.</span>
+      <span class="s2" style="font-size:.85rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.35rem .85rem;background:#fff3d9">4–6 ✔ Repite los bloques que te fallaron</span>
+      <span class="s3" style="font-size:.85rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.35rem .85rem;background:#ffd9d3">0–3 ✔ Vuelve a la Unidad 02</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CHULETA ═══════════ -->
+<section class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <h2>Chuleta de subconsultas</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Tipo</th><th>Sintaxis base</th><th>Devuelve</th><th>Se usa para</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Escalar</strong></td><td class="mono">WHERE precio &gt; (SELECT AVG(precio) FROM ...)</td><td>Un valor</td><td>Comparar contra un agregado.</td></tr>
+          <tr><td><strong>IN</strong></td><td class="mono">WHERE id IN (SELECT fk FROM ...)</td><td>Lista de valores</td><td>Filtrar por pertenencia a un conjunto.</td></tr>
+          <tr><td><strong>NOT IN</strong></td><td class="mono">WHERE id NOT IN (SELECT fk FROM ...)</td><td>Lista de valores</td><td>Filtrar por ausencia (cuidado con NULL).</td></tr>
+          <tr><td><strong>ANY / ALL</strong></td><td class="mono">WHERE precio &gt; ANY (SELECT ...)</td><td>Lista de valores</td><td>Comparar contra alguno o todos.</td></tr>
+          <tr><td><strong>Tabla derivada</strong></td><td class="mono">FROM (SELECT ... GROUP BY ...) AS x</td><td>Filas y columnas</td><td>Filtrar o reagrupar resultados agregados.</td></tr>
+          <tr><td><strong>EXISTS</strong></td><td class="mono">WHERE EXISTS (SELECT 1 FROM ... WHERE ...)</td><td>Verdadero / falso</td><td>Verificar existencia de correspondencia.</td></tr>
+          <tr><td><strong>NOT EXISTS</strong></td><td class="mono">WHERE NOT EXISTS (SELECT 1 FROM ...)</td><td>Verdadero / falso</td><td>Encontrar registros sin correspondencia.</td></tr>
+          <tr><td><strong>Correlacionada</strong></td><td class="mono">WHERE x.col = (SELECT ... WHERE ... = x.col)</td><td>Varía por fila</td><td>Cálculos "por cada uno" (máximo por grupo, etc.).</td></tr>
+          <tr><td><strong>En SELECT</strong></td><td class="mono">SELECT (SELECT COUNT(*) FROM ...) AS total, ...</td><td>Un valor por fila</td><td>Columnas calculadas sin JOIN.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><span class="tag">🔜 Próxima entrega</span>BD·112: <strong>Proyecto final del curso</strong>. Un caso completo desde cero: análisis de requisitos, normalización, DDL, DML, consultas con JOIN y subconsultas, y documentación. Es la evaluación integradora de todo lo aprendido en BD·101 a BD·111.</div>
+  </div>
+</section>
+
+<!-- ═══════════ GLOSARIO ═══════════ -->
+<section class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <h2>Glosario de esta entrega</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <dl class="gloss">
+      <div class="term"><dt>Subconsulta</dt><dd>Un SELECT completo dentro de otro SELECT, BETWEEN, WHERE, FROM o HAVING. Siempre va entre paréntesis.</dd></div>
+      <div class="term"><dt>Subconsulta escalar</dt><dd>Devuelve un único valor (una fila, una columna). Se compara con =, &gt;, &lt;, etc.</dd></div>
+      <div class="term"><dt>Tabla derivada</dt><dd>Subconsulta en el FROM que actúa como tabla virtual. Requiere un alias.</dd></div>
+      <div class="term"><dt>Subconsulta correlacionada</dt><dd>Referencia una columna de la consulta exterior; se ejecuta una vez por cada fila exterior.</dd></div>
+      <div class="term"><dt>EXISTS</dt><dd>Operador que devuelve verdadero si la subconsulta produce al menos una fila.</dd></div>
+      <div class="term"><dt>IN</dt><dd>Operador que verifica si un valor pertenece a la lista devuelta por una subconsulta.</dd></div>
+      <div class="term"><dt>ANY / ALL</dt><dd>Operadores que comparan un valor contra alguno (ANY) o todos (ALL) los valores de una lista.</dd></div>
+      <div class="term"><dt>Consulta exterior</dt><dd>La consulta que contiene a la subconsulta. Se evalúa después de la subconsulta (salvo en correlacionadas).</dd></div>
+    </dl>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="foot-brand">BD·111 — Subconsultas (SQL Server)</div>
+      <small>Fase 4 · Consultar avanzado del tutorial de bases de datos · Versión 1.0 · 2026 · Permitida su reproducción con fines educativos citando la fuente.<br>Construido solo con HTML y CSS — cero JavaScript. También puedes imprimirlo (Ctrl/Cmd + P).</small>
+    </div>
+    <div class="top-link"><a href="#inicio">↑ Volver arriba</a></div>
+  </div>
+</footer>
+</body>
+</html>

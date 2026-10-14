@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tutorial de SELECT avanzado en SQL Server: WHERE, ORDER BY, TOP, DISTINCT, funciones de agregado, GROUP BY y HAVING.">
+<title>SELECT con superpoderes · BD·108 · SQL Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600;700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0e2b25; --ink-soft:#3c5a52;
+  --paper:#f2f5ef; --card:#ffffff;
+  --teal:#0f7f68; --teal-deep:#0a5747;
+  --amber:#ffb63d; --amber-deep:#a15c00;
+  --coral:#ff6d5a; --sky:#3f7fe0;
+  --line:#d9e1d7;
+  --shadow:8px 8px 0 rgba(14,43,37,.14);
+  --shadow-sm:4px 4px 0 rgba(14,43,37,.14);
+  --display:'Bricolage Grotesque','Arial Black',sans-serif;
+  --body:'Public Sans','Segoe UI',sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body);color:var(--ink);line-height:1.65;
+  background:
+    radial-gradient(900px 420px at 85% -80px, rgba(15,127,104,.16), transparent 60%),
+    radial-gradient(700px 400px at -10% 35%, rgba(255,182,61,.14), transparent 55%),
+    linear-gradient(rgba(14,43,37,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,43,37,.05) 1px, transparent 1px),
+    var(--paper);
+  background-size:auto,auto,34px 34px,34px 34px,auto;
+}
+section{scroll-margin-top:84px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 1.25rem}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:8px;top:8px;background:var(--amber);color:var(--ink);padding:.5rem .9rem;z-index:99;border-radius:8px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#e9f2ec;border-bottom:4px solid var(--amber);display:flex;align-items:center;flex-wrap:wrap;gap:.6rem 1.4rem;padding:.65rem 1.25rem}
+.brand{display:flex;align-items:center;gap:.6rem;color:#fff;text-decoration:none;font-family:var(--display);font-weight:800;font-size:1.05rem}
+.brand-badge{background:var(--amber);color:var(--ink);font-family:var(--mono);font-weight:700;padding:.18rem .5rem;border-radius:8px;box-shadow:2px 2px 0 rgba(0,0,0,.4)}
+.brand small{font-family:var(--mono);font-weight:400;font-size:.7rem;color:#9fc3b6;letter-spacing:.12em;text-transform:uppercase}
+.topbar nav{display:flex;flex-wrap:wrap;gap:.15rem;margin-left:auto}
+.topbar nav a{color:#dcebe3;text-decoration:none;font-size:.86rem;font-weight:600;padding:.35rem .75rem;border-radius:999px;transition:background .2s,color .2s}
+.topbar nav a:hover,.topbar nav a:focus-visible{background:rgba(255,182,61,.2);color:#ffd98a}
+
+.hero{padding:4.2rem 0 3rem}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:3rem;align-items:center}
+.kicker{font-family:var(--mono);font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-deep);font-weight:600;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
+.blink{display:inline-block;width:.6em;height:1.1em;background:var(--teal);animation:blink 1.1s steps(2) infinite;vertical-align:-.15em}
+@keyframes blink{50%{opacity:0}}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(2.5rem,5.2vw,4.3rem);line-height:1.02;margin-bottom:1.1rem}
+.hl{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%);padding:0 .08em}
+.lead{font-size:1.12rem;color:var(--ink-soft);max-width:34rem;margin-bottom:1.4rem}
+.meta-chips{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1rem}
+.chip{font-family:var(--mono);font-size:.74rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;background:#fff;padding:.3rem .75rem;box-shadow:var(--shadow-sm)}
+.trail{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.6rem;max-width:36rem}
+.trail span{font-family:var(--mono);font-size:.66rem;font-weight:700;border-radius:8px;padding:.22rem .55rem;border:1.5px solid var(--ink)}
+.trail .done{background:#d9f2e6;color:var(--teal-deep)}
+.trail .here{background:var(--amber);color:var(--ink);box-shadow:var(--shadow-sm)}
+.trail .next{background:#fff;color:var(--ink-soft);opacity:.85}
+.cta-row{display:flex;flex-wrap:wrap;gap:.9rem;margin-bottom:1.8rem}
+.btn{display:inline-block;padding:.8rem 1.4rem;border:2px solid var(--ink);border-radius:999px;font-weight:700;text-decoration:none;font-size:.95rem;background:var(--amber);color:var(--ink);box-shadow:4px 4px 0 var(--ink);transition:transform .18s,box-shadow .18s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.ghost{background:#fff}
+.ficha{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:.8rem 1.1rem;font-size:.86rem;box-shadow:var(--shadow-sm)}
+.ficha strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--teal-deep)}
+.ficha .blank{display:inline-block;min-width:9rem;border-bottom:2px dotted var(--ink-soft)}
+
+.stack{position:relative}
+.table-card{background:#fff;border:2px solid var(--ink);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;animation:riseIn .7s .1s both}
+@keyframes riseIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.window-bar{display:flex;align-items:center;gap:.45rem;background:var(--ink);color:#cfe4da;font-family:var(--mono);font-size:.75rem;padding:.5rem .9rem}
+.dot{width:.65rem;height:.65rem;border-radius:50%}
+.dot.r{background:var(--coral)}.dot.a{background:var(--amber)}.dot.v{background:var(--teal)}
+.window-bar .fname{margin-left:.5rem;letter-spacing:.05em}
+.table-card table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.74rem}
+.table-card th{background:var(--teal-deep);color:#fff;text-align:left;padding:.5rem .6rem;font-weight:600}
+.table-card td{padding:.5rem .6rem;border-top:1px dashed var(--line)}
+.table-card tbody tr{animation:rowIn .55s both}
+.table-card tbody tr:nth-child(1){animation-delay:.35s}
+.table-card tbody tr:nth-child(2){animation-delay:.55s}
+.table-card tbody tr:nth-child(3){animation-delay:.75s}
+@keyframes rowIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.ok{color:var(--teal);font-weight:700}.no{color:var(--coral);font-weight:700}
+.hl-row td{background:rgba(255,182,61,.3)!important}
+.terminal{position:relative;z-index:2;margin:-1.6rem 0 0 2.4rem;background:#10201c;color:#d7ede2;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;animation:riseIn .7s .45s both;width:94%}
+.terminal pre{margin:0;padding:.9rem 1.1rem;font-family:var(--mono);font-size:.72rem;line-height:1.75;overflow-x:auto}
+.p{color:var(--amber);font-weight:700}
+.kw{color:#ffcf7d;font-weight:600}
+.str{color:#8ee6ad}
+.num{color:#7cc7ff}
+.cm{color:#7fa396;font-style:italic}
+.res{color:#9fd6c2}
+.caret{display:inline-block;width:.55em;height:1em;background:#8ee6ad;animation:blink 1s steps(2) infinite;vertical-align:-.12em}
+.float-chip{position:absolute;z-index:3;font-family:var(--mono);font-weight:700;font-size:.8rem;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:.3rem .8rem;box-shadow:var(--shadow-sm);animation:floaty 4.5s ease-in-out infinite alternate}
+.fc1{top:-16px;right:-8px;background:var(--amber);animation-delay:.2s}
+.fc2{top:38%;left:-24px;background:#d9f2e6;animation-delay:1.1s}
+.fc3{bottom:6%;right:-14px;background:#d9e9ff;animation-delay:.6s}
+@keyframes floaty{from{transform:translateY(-5px)}to{transform:translateY(6px)}}
+
+.ticker{overflow:hidden;background:var(--ink);color:#e9f2ec;border-block:3px solid var(--amber);margin-top:2.5rem}
+.ticker-track{display:flex;width:max-content;animation:scrollX 32s linear infinite;padding:.6rem 0;font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;white-space:nowrap}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.tick-set{display:flex;gap:2.2rem;padding-right:2.2rem}
+.tick-set b{color:var(--amber)}
+@keyframes scrollX{to{transform:translateX(-50%)}}
+
+.ruta{padding:3.5rem 0 2.5rem}
+.h2{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,3.4vw,2.4rem);line-height:1.1;margin-bottom:.4rem}
+.sub{color:var(--ink-soft);max-width:44rem;margin-bottom:1.6rem}
+.ruta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1rem}
+.ruta-item{display:flex;gap:1rem;align-items:flex-start;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.1rem 1.2rem;text-decoration:none;color:inherit;box-shadow:var(--shadow-sm);border-left:6px solid var(--teal);transition:transform .2s,box-shadow .2s}
+.ruta-item:nth-child(2){border-left-color:var(--amber)}
+.ruta-item:nth-child(3){border-left-color:var(--coral)}
+.ruta-item:nth-child(4){border-left-color:var(--sky)}
+.ruta-item:nth-child(5){border-left-color:var(--teal-deep)}
+.ruta-item:nth-child(6){border-left-color:var(--amber-deep)}
+.ruta-item:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
+.ruta-num{font-family:var(--display);font-weight:800;font-size:2.6rem;line-height:1;color:rgba(15,127,104,.14);-webkit-text-stroke:1.8px var(--teal);transition:color .25s}
+.ruta-item:hover .ruta-num{color:var(--teal)}
+.ruta-item h3{font-size:1.02rem;margin-bottom:.2rem}
+.ruta-item p{font-size:.86rem;color:var(--ink-soft);margin-bottom:.45rem}
+.mini-time{font-family:var(--mono);font-size:.68rem;font-weight:600;background:var(--paper);border:1.5px solid var(--ink);border-radius:999px;padding:.15rem .55rem}
+
+.unit{padding:3.6rem 0}
+.unit-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:.4rem 1.1rem;border-bottom:3px solid var(--ink);padding-bottom:.8rem;margin-bottom:1.8rem}
+.unit-num{font-family:var(--display);font-weight:800;font-size:clamp(2.6rem,5vw,3.6rem);line-height:1;color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.u2 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber-deep)}
+.u3 .unit-num{color:rgba(255,109,90,.15);-webkit-text-stroke:2.4px var(--coral)}
+.u4 .unit-num{color:rgba(63,127,224,.15);-webkit-text-stroke:2.4px var(--sky)}
+.u5 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber)}
+.u6 .unit-num{color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.unit-time{font-family:var(--mono);font-size:.72rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.25rem .7rem;background:#fff;margin-left:auto}
+.unit h3{font-family:var(--display);font-weight:800;font-size:1.3rem;margin:2.2rem 0 .8rem}
+.unit h4{font-family:var(--display);font-weight:800;font-size:1.1rem;margin:1.6rem 0 .6rem;color:var(--teal-deep)}
+.unit p{margin-bottom:.9rem;max-width:60rem}
+.unit ul,.unit ol{margin:0 0 1rem 1.4rem}
+.unit li{margin-bottom:.4rem}
+
+.note{border-left:6px solid var(--amber);background:#fff8ea;border-radius:0 12px 12px 0;padding:1rem 1.2rem;margin:1.2rem 0;box-shadow:var(--shadow-sm);max-width:60rem}
+.note.tip{border-left-color:var(--teal);background:#eafaf3}
+.note.warn{border-left-color:var(--coral);background:#fff1ee}
+.note.instructor{border-left-color:var(--sky);background:#eef4ff}
+.note .tag{font-family:var(--mono);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:.3rem;color:var(--amber-deep)}
+.note.tip .tag{color:var(--teal-deep)}.note.warn .tag{color:#c2402f}.note.instructor .tag{color:var(--sky)}
+.def-big{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.45;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.4rem 1.6rem;box-shadow:var(--shadow);margin:1.4rem 0;max-width:56rem;position:relative}
+.def-big::before{content:"“";position:absolute;top:-1.4rem;left:1rem;font-family:var(--display);font-size:4rem;color:var(--amber);line-height:1}
+.def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%)}
+
+.table-wrap{overflow-x:auto;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);background:#fff;margin:1.2rem 0;max-width:64rem}
+table.data{width:100%;border-collapse:collapse;font-size:.9rem}
+table.data th{background:var(--teal-deep);color:#fff;text-align:left;padding:.6rem .8rem;font-size:.82rem;letter-spacing:.03em;white-space:nowrap}
+table.data td{padding:.55rem .8rem;border-top:1px solid var(--line);vertical-align:top}
+table.data tbody tr:nth-child(even) td{background:#f6faf6}
+table.data tbody tr:hover td{background:#eef7f0}
+table.data.small{font-size:.82rem}
+table.data.small td,table.data.small th{padding:.45rem .7rem}
+.mono{font-family:var(--mono);font-size:.84em}
+
+.example-label{display:inline-block;font-family:var(--mono);font-size:.72rem;font-weight:700;background:var(--teal);color:#fff;padding:.2rem .6rem;border-radius:6px;margin-bottom:.5rem}
+.example-label.ex2{background:var(--sky)}
+.example-label.ex3{background:var(--coral)}
+
+.qa{border:2px solid var(--ink);border-radius:12px;background:#fff;margin:1rem 0;box-shadow:var(--shadow-sm);max-width:64rem}
+.qa summary{cursor:pointer;padding:.8rem 1.1rem;font-weight:700;display:flex;align-items:center;gap:.6rem;list-style:none}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::before{content:"▸";color:var(--teal);font-size:1.1rem;transition:transform .25s}
+.qa[open] summary::before{transform:rotate(90deg)}
+.qa summary:hover{background:#f4faf6}
+.qa>div{padding:.2rem 1.1rem 1.1rem 2.3rem;border-top:2px dashed var(--line)}
+.qa.sol summary::before{color:var(--amber-deep)}
+
+.code{background:#0f2320;color:#dcefe6;border:2px solid var(--ink);border-radius:12px;overflow:hidden;margin:1.2rem 0;box-shadow:var(--shadow);max-width:64rem}
+.code-bar{display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:#0a1a17;border-bottom:1px solid #1e3a34;font-family:var(--mono);font-size:.72rem;color:#9db8ae}
+.code pre{margin:0;padding:1rem 1.2rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;line-height:1.7}
+
+.dark{background:var(--ink);color:#e9f2ec}
+.dark .unit-head{border-bottom-color:var(--amber)}
+.dark .unit-time{background:#16352e;color:#ffd98a;border-color:#ffd98a}
+.dark p{color:#cfe2d9}
+.dark h3{color:#ffe1a8}
+.dark h4{color:#ffd98a}
+.dark .note{background:#16352e;border-left-color:var(--amber);color:#e9f2ec}
+.dark .note .tag{color:var(--amber)}
+.dark table.data{color:var(--ink)}
+.dark .table-wrap{color:var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.45);border-color:#3a5a52}
+.dark .qa{background:#16352e;border-color:#3a5a52;color:#e9f2ec}
+.dark .qa summary:hover{background:#1d4038}
+.dark .qa>div{border-top-color:#3a5a52;color:#cfe2d9}
+.dark .def-big{background:#16352e;color:#e9f2ec;border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+.dark .def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.55) 60%)}
+.dark .code{border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+.dark .example-label{background:#3a5a52}
+
+.act{border:2px solid var(--ink);border-radius:16px;background:#fff;box-shadow:var(--shadow);margin:1.8rem 0;overflow:hidden}
+.act-head{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem;padding:.9rem 1.3rem;background:var(--paper);border-bottom:2px solid var(--ink)}
+.act-num{font-family:var(--display);font-weight:800;font-size:1.25rem;background:var(--amber);border:2px solid var(--ink);border-radius:10px;padding:.12rem .65rem}
+.act.a2 .act-num{background:#ffd9d3}.act.a3 .act-num{background:#d9e9ff}
+.act.a4 .act-num{background:#ffe9c4}.act.a5 .act-num{background:#d9f2e6}
+.act.a6 .act-num{background:#e9d9ff}.act.a7 .act-num{background:#ffd9e9}
+.act.a8 .act-num{background:#d9ffe9}.act.a9 .act-num{background:#ffe9d9}
+.act.a10 .act-num{background:#d9e9ff}.act.a11 .act-num{background:#f2e9d9}
+.act.a12 .act-num{background:#e9f2d9}
+.act-head h3{font-family:var(--display);font-size:1.15rem;margin:0}
+.act-head .mini-time{margin-left:auto}
+.act-body{padding:1.3rem 1.4rem}
+.act-body>p{max-width:56rem}
+.answer{border:2px dashed var(--teal);border-radius:12px;padding:1rem 1.2rem;min-height:80px;margin:1rem 0;background:repeating-linear-gradient(transparent 0 27px, rgba(15,127,104,.14) 27px 28px);color:var(--ink-soft);font-style:italic;font-size:.92rem}
+ul.tick{list-style:none;margin:.8rem 0}
+ul.tick li{position:relative;padding-left:2.1rem;margin:.55rem 0}
+ul.tick li::before{content:"";position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;border:2px solid var(--ink);border-radius:4px;background:#fff}
+.rubric td:first-child{font-weight:700}
+.score-note{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1rem}
+.score-note span{font-size:.85rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.35rem .85rem;background:#fff}
+.score-note .s1{background:#d9f2e6}.score-note .s2{background:#fff3d9}.score-note .s3{background:#ffd9d3}
+
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.9rem;margin-top:1rem}
+.term{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:.9rem 1.1rem;box-shadow:var(--shadow-sm);transition:transform .2s}
+.term:hover{transform:translateY(-3px)}
+.term dt{font-family:var(--mono);font-weight:700;font-size:.9rem;margin-bottom:.25rem}
+.term dt::before{content:"▣ ";color:var(--teal)}
+.term dd{font-size:.86rem;color:var(--ink-soft)}
+
+footer{background:var(--ink);color:#cfe2d9;margin-top:4rem;border-top:4px solid var(--amber)}
+footer .wrap{padding-top:2.5rem;padding-bottom:2.5rem;display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-start}
+footer .foot-brand{font-family:var(--display);font-weight:800;font-size:1.3rem;color:#fff}
+footer small{display:block;margin-top:.4rem;font-family:var(--mono);font-size:.72rem;color:#9fc3b6;max-width:34rem;line-height:1.7}
+footer .top-link{align-self:center}
+footer .top-link a{color:#ffd98a;text-decoration:none;font-family:var(--mono);font-size:.85rem;border:2px solid #ffd98a;border-radius:999px;padding:.5rem 1.1rem;transition:background .2s}
+footer .top-link a:hover{background:rgba(255,217,138,.15)}
+
+@media (max-width:940px){
+  .hero-grid{grid-template-columns:1fr;gap:2.5rem}
+  .terminal{margin:1.2rem 0 0}
+  .topbar nav{margin-left:0;width:100%;overflow-x:auto}
+}
+@media print{
+  .topbar,.ticker,.cta-row,.float-chip,.top-link{display:none!important}
+  body{background:#fff}
+  .table-card,.terminal,.code,.act,.qa{box-shadow:none;break-inside:avoid}
+  .unit,.hero{padding:1.2rem 0}
+  .terminal pre,.code pre{white-space:pre-wrap}
+  a{color:inherit;text-decoration:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="topbar">
+  <a class="brand" href="#inicio"><span class="brand-badge">BD·108</span> SELECT con superpoderes <small>· SQL Server</small></a>
+  <nav aria-label="Secciones del tutorial">
+    <a href="#where">WHERE</a>
+    <a href="#logicos">AND/OR/NOT</a>
+    <a href="#patrones">LIKE/IN/BETWEEN</a>
+    <a href="#orden">ORDER BY/TOP</a>
+    <a href="#agregado">Agregados</a>
+    <a href="#group">GROUP BY</a>
+    <a href="#taller">Taller</a>
+    <a href="#chuleta">Chuleta</a>
+  </nav>
+</header>
+
+<main id="contenido">
+
+<!-- ═══════════ PORTADA ═══════════ -->
+<section id="inicio" class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker"><span class="blink"></span> Fase 4 · Consultar (DQL) · Motor: SQL Server</p>
+      <h1>Pregúntale a tus datos.<br><span class="hl">Ellos responden.</span></h1>
+      <p class="lead">Ya sabes crear, modificar y borrar datos. Hoy aprenderás a <strong>preguntarles exactamente lo que necesitas</strong>: filtros con WHERE, patrones con LIKE, ordenamiento con ORDER BY, y resúmenes con COUNT, SUM, AVG y GROUP BY. Esta entrega está cargada de <strong>muchos ejemplos y ejercicios</strong> porque la única forma de dominar SELECT es practicarlo.</p>
+      <div class="meta-chips">
+        <span class="chip">⏱ ≈ 4 sesiones</span>
+        <span class="chip">🗄️ Motor: SQL Server</span>
+        <span class="chip">🔍 Tema: SELECT avanzado</span>
+        <span class="chip">💪 12 ejercicios</span>
+      </div>
+      <div class="trail" aria-label="Progreso del curso">
+        <span class="done">BD·101-106 ✔ DDL</span>
+        <span class="done">BD·107 ✔ DML</span>
+        <span class="here">BD·108 ● Estás aquí</span>
+        <span class="next">BD·109 JOIN…</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn" href="#where">Empezar con WHERE ↓</a>
+        <a class="btn ghost" href="#taller">Ir directo a los 12 ejercicios</a>
+      </div>
+      <div class="ficha">
+        <strong>Ficha / Grupo:</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Instructor(a):</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Servidor SQL:</strong> <span class="blank">&nbsp;</span>
+      </div>
+    </div>
+
+    <div class="stack">
+      <span class="float-chip fc1">WHERE</span>
+      <span class="float-chip fc2">GROUP BY</span>
+      <span class="float-chip fc3">COUNT(*)</span>
+      <div class="table-card">
+        <div class="window-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span><span class="fname">tienda_db · dbo.productos</span></div>
+        <table>
+          <thead><tr><th>nombre</th><th>precio</th><th>cantidad</th><th>activo</th></tr></thead>
+          <tbody>
+            <tr class="hl-row"><td>Gaseosa 400 ml</td><td>3800.00</td><td>48</td><td class="ok">1</td></tr>
+            <tr><td>Empanada</td><td>2500.00</td><td>25</td><td class="ok">1</td></tr>
+            <tr><td>Café</td><td>1800.00</td><td>0</td><td class="no">0</td></tr>
+          </tbody>
+        </table>
+        <div class="window-bar" style="border-top:2px solid var(--coral)">WHERE precio &gt; 2000 AND activo = 1 → solo la fila resaltada</div>
+      </div>
+      <div class="terminal">
+        <div class="window-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span><span class="fname">SSMS · consultas.sql</span></div>
+        <pre><span class="p">1&gt;</span> <span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos
+<span class="p">·</span> <span class="kw">WHERE</span> precio &gt; <span class="num">2000</span> <span class="kw">AND</span> activo = <span class="num">1</span>
+<span class="p">·</span> <span class="kw">ORDER BY</span> precio <span class="kw">DESC</span>;
+<span class="res">Gaseosa 400 ml | 3800.00
+Empanada       | 2500.00
+(2 rows) ✔</span>
+<span class="p">2&gt;</span> <span class="caret"></span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <div class="tick-set">
+        <span><b>WHERE</b> filtra</span><span><b>AND</b> une condiciones</span><span><b>OR</b> da alternativas</span><span><b>NOT</b> niega</span><span><b>LIKE</b> busca patrones</span><span><b>IN</b> lista de valores</span><span><b>BETWEEN</b> rango</span><span><b>IS NULL</b> vacío</span><span><b>ORDER BY</b> ordena</span><span><b>TOP</b> limita</span><span><b>COUNT</b> cuenta</span><span><b>SUM</b> suma</span><span><b>AVG</b> promedia</span><span><b>GROUP BY</b> agrupa</span><span><b>HAVING</b> filtra grupos</span>
+      </div>
+      <div class="tick-set">
+        <span><b>WHERE</b> filtra</span><span><b>AND</b> une condiciones</span><span><b>OR</b> da alternativas</span><span><b>NOT</b> niega</span><span><b>LIKE</b> busca patrones</span><span><b>IN</b> lista de valores</span><span><b>BETWEEN</b> rango</span><span><b>IS NULL</b> vacío</span><span><b>ORDER BY</b> ordena</span><span><b>TOP</b> limita</span><span><b>COUNT</b> cuenta</span><span><b>SUM</b> suma</span><span><b>AVG</b> promedia</span><span><b>GROUP BY</b> agrupa</span><span><b>HAVING</b> filtra grupos</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ HOJA DE RUTA ═══════════ -->
+<section class="ruta">
+  <div class="wrap">
+    <h2 class="h2">Hoja de ruta de esta entrega</h2>
+    <p class="sub">Cada concepto viene con múltiples ejemplos concretos sobre la tienda escolar y el refugio Patitas. Al final, un taller con <strong>12 ejercicios</strong> para que practiques hasta dominar cada herramienta.</p>
+    <div class="ruta-grid">
+      <a class="ruta-item" href="#where"><span class="ruta-num">01</span><div><h3>WHERE básico</h3><p>Operadores de comparación: =, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;=</p><span class="mini-time">⏱ 20 min</span></div></a>
+      <a class="ruta-item" href="#logicos"><span class="ruta-num">02</span><div><h3>AND, OR, NOT</h3><p>Combinar condiciones con operadores lógicos.</p><span class="mini-time">⏱ 20 min</span></div></a>
+      <a class="ruta-item" href="#patrones"><span class="ruta-num">03</span><div><h3>LIKE, IN, BETWEEN, IS NULL</h3><p>Filtros avanzados para patrones, listas y rangos.</p><span class="mini-time">⏱ 25 min</span></div></a>
+      <a class="ruta-item" href="#orden"><span class="ruta-num">04</span><div><h3>ORDER BY y TOP</h3><p>Ordenar resultados y limitar la cantidad de filas.</p><span class="mini-time">⏱ 15 min</span></div></a>
+      <a class="ruta-item" href="#agregado"><span class="ruta-num">05</span><div><h3>Funciones de agregado</h3><p>COUNT, SUM, AVG, MIN, MAX y DISTINCT.</p><span class="mini-time">⏱ 25 min</span></div></a>
+      <a class="ruta-item" href="#taller"><span class="ruta-num">06</span><div><h3>Taller: 12 ejercicios</h3><p>Práctica masiva con todos los conceptos.</p><span class="mini-time">⏱ 120 min</span></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DATOS DE EJEMPLO ═══════════ -->
+<section class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <h2 class="h2">Los datos con los que vamos a trabajar</h2>
+    </div>
+    <p>Para todos los ejemplos y ejercicios usaremos estas dos tablas de la tienda escolar. Cópialas y ejecútalas en tu servidor antes de empezar.</p>
+    
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; datos_de_ejemplo.sql</div>
+      <pre><span class="cm">-- ═══════════════════════════════════════════════════</span>
+<span class="cm">-- SCRIPT DE DATOS DE EJEMPLO PARA BD·108</span>
+<span class="cm">-- ═══════════════════════════════════════════════════</span>
+
+<span class="cm">-- Limpiar datos anteriores</span>
+<span class="kw">DELETE FROM</span> detalle_pedido;
+<span class="kw">DELETE FROM</span> pedidos;
+<span class="kw">DELETE FROM</span> productos;
+<span class="kw">DELETE FROM</span> categorias;
+<span class="kw">DELETE FROM</span> clientes;
+<span class="kw">GO</span>
+
+<span class="cm">-- Categorías</span>
+<span class="kw">INSERT INTO</span> categorias (nombre) <span class="kw">VALUES</span> (<span class="str">'Bebidas'</span>);
+<span class="kw">INSERT INTO</span> categorias (nombre) <span class="kw">VALUES</span> (<span class="str">'Fritos'</span>);
+<span class="kw">INSERT INTO</span> categorias (nombre) <span class="kw">VALUES</span> (<span class="str">'Snacks'</span>);
+<span class="kw">INSERT INTO</span> categorias (nombre) <span class="kw">VALUES</span> (<span class="str">'Dulces'</span>);
+<span class="kw">GO</span>
+
+<span class="cm">-- Productos (10 productos variados)</span>
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad, activo) <span class="kw">VALUES</span>
+(<span class="str">'Gaseosa 400 ml'</span>,   <span class="num">1</span>, <span class="num">3800</span>, <span class="num">48</span>, <span class="num">1</span>),
+(<span class="str">'Café'</span>,             <span class="num">1</span>, <span class="num">1800</span>,  <span class="num">0</span>, <span class="num">0</span>),
+(<span class="str">'Jugo de mango'</span>,    <span class="num">1</span>, <span class="num">3000</span>, <span class="num">22</span>, <span class="num">1</span>),
+(<span class="str">'Agua en botella'</span>,  <span class="num">1</span>, <span class="num">1500</span>, <span class="num">60</span>, <span class="num">1</span>),
+(<span class="str">'Empanada'</span>,         <span class="num">2</span>, <span class="num">2500</span>, <span class="num">25</span>, <span class="num">1</span>),
+(<span class="str">'Arepas'</span>,           <span class="num">2</span>, <span class="num">2000</span>, <span class="num">15</span>, <span class="num">1</span>),
+(<span class="str">'Papas fritas'</span>,     <span class="num">3</span>, <span class="num">4000</span>, <span class="num">30</span>, <span class="num">1</span>),
+(<span class="str">'Chitos'</span>,           <span class="num">3</span>, <span class="num">2200</span>, <span class="num">40</span>, <span class="num">1</span>),
+(<span class="str">'Chocolate'</span>,        <span class="num">4</span>, <span class="num">3500</span>, <span class="num">18</span>, <span class="num">1</span>),
+(<span class="str">'Bon Bon Bum'</span>,      <span class="num">4</span>,  <span class="num">800</span>, <span class="num">50</span>, <span class="num">1</span>);
+<span class="kw">GO</span>
+
+<span class="cm">-- Clientes</span>
+<span class="kw">INSERT INTO</span> clientes (nombre, telefono) <span class="kw">VALUES</span>
+(<span class="str">'Valentina Ruiz'</span>, <span class="str">'310-111-2222'</span>),
+(<span class="str">'Carlos Peña'</span>,    <span class="str">'300-777-8888'</span>),
+(<span class="str">'Ana Torres'</span>,     <span class="str">'315-555-1111'</span>),
+(<span class="str">'Luis Mora'</span>,      <span class="num">NULL</span>);
+<span class="kw">GO</span>
+
+<span class="cm">-- Pedidos</span>
+<span class="kw">INSERT INTO</span> pedidos (cliente_id, total) <span class="kw">VALUES</span>
+(<span class="num">1</span>, <span class="num">6300</span>),
+(<span class="num">1</span>, <span class="num">2500</span>),
+(<span class="num">2</span>, <span class="num">4000</span>),
+(<span class="num">3</span>, <span class="num">9800</span>),
+(<span class="num">3</span>, <span class="num">3800</span>);
+<span class="kw">GO</span></pre>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data small">
+        <thead><tr><th>id</th><th>nombre</th><th>categoria_id</th><th>precio</th><th>cantidad</th><th>activo</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Gaseosa 400 ml</td><td>1 (Bebidas)</td><td class="mono">3800</td><td class="mono">48</td><td class="mono">1</td></tr>
+          <tr><td>2</td><td>Café</td><td>1 (Bebidas)</td><td class="mono">1800</td><td class="mono">0</td><td class="mono">0</td></tr>
+          <tr><td>3</td><td>Jugo de mango</td><td>1 (Bebidas)</td><td class="mono">3000</td><td class="mono">22</td><td class="mono">1</td></tr>
+          <tr><td>4</td><td>Agua en botella</td><td>1 (Bebidas)</td><td class="mono">1500</td><td class="mono">60</td><td class="mono">1</td></tr>
+          <tr><td>5</td><td>Empanada</td><td>2 (Fritos)</td><td class="mono">2500</td><td class="mono">25</td><td class="mono">1</td></tr>
+          <tr><td>6</td><td>Arepas</td><td>2 (Fritos)</td><td class="mono">2000</td><td class="mono">15</td><td class="mono">1</td></tr>
+          <tr><td>7</td><td>Papas fritas</td><td>3 (Snacks)</td><td class="mono">4000</td><td class="mono">30</td><td class="mono">1</td></tr>
+          <tr><td>8</td><td>Chitos</td><td>3 (Snacks)</td><td class="mono">2200</td><td class="mono">40</td><td class="mono">1</td></tr>
+          <tr><td>9</td><td>Chocolate</td><td>4 (Dulces)</td><td class="mono">3500</td><td class="mono">18</td><td class="mono">1</td></tr>
+          <tr><td>10</td><td>Bon Bon Bum</td><td>4 (Dulces)</td><td class="mono">800</td><td class="mono">50</td><td class="mono">1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 01 · WHERE ═══════════ -->
+<section id="where" class="unit u1">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">01</span>
+      <h2 class="h2">WHERE: el filtro básico</h2>
+      <span class="unit-time">⏱ 20 min práctica</span>
+    </div>
+
+    <div class="def-big"><strong>WHERE</strong> es la cláusula que filtra las filas de una consulta. Solo devuelve las filas que cumplen la condición que especifiques. Sin WHERE, SELECT devuelve <strong>todas</strong> las filas de la tabla.</div>
+
+    <h3>Los operadores de comparación</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Operador</th><th>Significado</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">=</td><td>Igual a</td><td class="mono">WHERE precio = 2500</td></tr>
+          <tr><td class="mono">&lt;&gt;</td><td>Diferente de</td><td class="mono">WHERE precio &lt;&gt; 2500</td></tr>
+          <tr><td class="mono">&lt;</td><td>Menor que</td><td class="mono">WHERE precio &lt; 2500</td></tr>
+          <tr><td class="mono">&gt;</td><td>Mayor que</td><td class="mono">WHERE precio &gt; 2500</td></tr>
+          <tr><td class="mono">&lt;=</td><td>Menor o igual</td><td class="mono">WHERE precio &lt;= 2500</td></tr>
+          <tr><td class="mono">&gt;=</td><td>Mayor o igual</td><td class="mono">WHERE precio &gt;= 2500</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Ejemplos con la tabla productos</h3>
+
+    <span class="example-label">Ejemplo 1: igualdad</span>
+    <div class="code"><pre><span class="cm">-- Todos los productos que cuestan exactamente 2500</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">WHERE</span> precio = <span class="num">2500</span>;</pre></div>
+    <p>Resultado: solo "Empanada" (2500).</p>
+
+    <span class="example-label ex2">Ejemplo 2: mayor que</span>
+    <div class="code"><pre><span class="cm">-- Todos los productos que cuestan más de 3000</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">WHERE</span> precio &gt; <span class="num">3000</span>;</pre></div>
+    <p>Resultado: Gaseosa (3800), Jugo de mango (3000) no porque es exactamente 3000, Papas fritas (4000), Chocolate (3500).</p>
+
+    <span class="example-label ex3">Ejemplo 3: diferente de</span>
+    <div class="code"><pre><span class="cm">-- Todos los productos que NO están en la categoría 1 (Bebidas)</span>
+<span class="kw">SELECT</span> nombre, categoria_id <span class="kw">FROM</span> productos <span class="kw">WHERE</span> categoria_id &lt;&gt; <span class="num">1</span>;</pre></div>
+    <p>Resultado: Empanada, Arepas, Papas fritas, Chitos, Chocolate, Bon Bon Bum.</p>
+
+    <h3>Ejemplos con texto</h3>
+
+    <span class="example-label">Ejemplo 4: texto exacto</span>
+    <div class="code"><pre><span class="cm">-- Buscar un producto por su nombre exacto</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre = <span class="str">'Empanada'</span>;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 5: comparación de texto</span>
+    <div class="code"><pre><span class="cm">-- Los nombres que vienen alfabéticamente después de 'J'</span>
+<span class="kw">SELECT</span> nombre <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre &gt; <span class="str">'J'</span>;</pre></div>
+    <p>Resultado: Jugo de mango, Papas fritas, Chitos... (todos los que empiezan con letras después de J).</p>
+
+    <h3>Ejemplos con BIT (activo)</h3>
+
+    <span class="example-label">Ejemplo 6: productos activos</span>
+    <div class="code"><pre><span class="cm">-- Solo los productos que están activos (activo = 1)</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">WHERE</span> activo = <span class="num">1</span>;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 7: productos inactivos</span>
+    <div class="code"><pre><span class="cm">-- Solo los productos que NO están activos (activo = 0)</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">WHERE</span> activo = <span class="num">0</span>;</pre></div>
+
+    <h3>Mini reto ⚡</h3>
+    <p>Escribe la consulta que devuelva solo los productos que cuestan <strong>menos de 2000</strong>.</p>
+    <details class="qa sol">
+      <summary>Ver solución</summary>
+      <div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">WHERE</span> precio &lt; <span class="num">2000</span>;</pre></div>
+      <p>Resultado: Café (1800), Agua en botella (1500), Bon Bon Bum (800).</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 02 · AND OR NOT ═══════════ -->
+<section id="logicos" class="unit u2">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">02</span>
+      <h2 class="h2">AND, OR, NOT: combinar condiciones</h2>
+      <span class="unit-time">⏱ 20 min práctica</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Operador</th><th>Qué hace</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">AND</td><td>Ambas condiciones deben ser verdaderas.</td><td class="mono">WHERE precio &gt; 2000 AND activo = 1</td></tr>
+          <tr><td class="mono">OR</td><td>Al menos una condición debe ser verdadera.</td><td class="mono">WHERE categoria_id = 1 OR categoria_id = 2</td></tr>
+          <tr><td class="mono">NOT</td><td>Niega la condición.</td><td class="mono">WHERE NOT activo = 1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Ejemplos con AND</h3>
+
+    <span class="example-label">Ejemplo 1: dos condiciones obligatorias</span>
+    <div class="code"><pre><span class="cm">-- Productos que cuestan más de 2000 Y están activos</span>
+<span class="kw">SELECT</span> nombre, precio, activo <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> precio &gt; <span class="num">2000</span> <span class="kw">AND</span> activo = <span class="num">1</span>;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 2: tres condiciones con AND</span>
+    <div class="code"><pre><span class="cm">-- Productos de la categoría 1, que cuestan más de 2000 y están activos</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> categoria_id = <span class="num">1</span> <span class="kw">AND</span> precio &gt; <span class="num">2000</span> <span class="kw">AND</span> activo = <span class="num">1</span>;</pre></div>
+    <p>Resultado: Gaseosa (3800) y Jugo de mango (3000). Café no porque cuesta 1800. Agua no porque cuesta 1500.</p>
+
+    <h3>Ejemplos con OR</h3>
+
+    <span class="example-label">Ejemplo 3: alternativas</span>
+    <div class="code"><pre><span class="cm">-- Productos de la categoría 1 (Bebidas) O de la categoría 4 (Dulces)</span>
+<span class="kw">SELECT</span> nombre, categoria_id <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> categoria_id = <span class="num">1</span> <span class="kw">OR</span> categoria_id = <span class="num">4</span>;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 4: OR con rangos</span>
+    <div class="code"><pre><span class="cm">-- Productos que cuestan menos de 1000 O más de 3500</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> precio &lt; <span class="num">1000</span> <span class="kw">OR</span> precio &gt; <span class="num">3500</span>;</pre></div>
+    <p>Resultado: Bon Bon Bum (800), Gaseosa (3800), Papas fritas (4000).</p>
+
+    <h3>Ejemplos combinando AND y OR</h3>
+
+    <span class="example-label ex3">Ejemplo 5: paréntesis para controlar el orden</span>
+    <div class="code"><pre><span class="cm">-- Productos activos que son de la categoría 1 o de la categoría 2</span>
+<span class="kw">SELECT</span> nombre, categoria_id <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> activo = <span class="num">1</span> <span class="kw">AND</span> (categoria_id = <span class="num">1</span> <span class="kw">OR</span> categoria_id = <span class="num">2</span>);</pre></div>
+    <p>Los paréntesis son importantes: sin ellos, el AND se evalúa antes que el OR y el resultado puede ser diferente al que esperas.</p>
+
+    <h3>Ejemplos con NOT</h3>
+
+    <span class="example-label">Ejemplo 6: negar una condición</span>
+    <div class="code"><pre><span class="cm">-- Productos que NO están activos</span>
+<span class="kw">SELECT</span> nombre <span class="kw">FROM</span> productos <span class="kw">WHERE</span> <span class="kw">NOT</span> activo = <span class="num">1</span>;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 7: NOT con OR</span>
+    <div class="code"><pre><span class="cm">-- Productos que NO son de la categoría 1 ni de la categoría 2</span>
+<span class="kw">SELECT</span> nombre, categoria_id <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> <span class="kw">NOT</span> (categoria_id = <span class="num">1</span> <span class="kw">OR</span> categoria_id = <span class="num">2</span>);</pre></div>
+
+    <h3>Mini reto ⚡</h3>
+    <p>Escribe la consulta que devuelva los productos que son de la categoría 3 (Snacks) <strong>y</strong> cuestan más de 3000.</p>
+    <details class="qa sol">
+      <summary>Ver solución</summary>
+      <div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> categoria_id = <span class="num">3</span> <span class="kw">AND</span> precio &gt; <span class="num">3000</span>;</pre></div>
+      <p>Resultado: solo Papas fritas (4000). Chitos cuesta 2200, así que no cumple.</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 03 · LIKE IN BETWEEN IS NULL ═══════════ -->
+<section id="patrones" class="unit u3">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">03</span>
+      <h2 class="h2">LIKE, IN, BETWEEN, IS NULL: filtros avanzados</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <h3>LIKE: buscar patrones en texto</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Patrón</th><th>Qué busca</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">LIKE 'A%'</td><td>Empieza con A.</td><td class="mono">WHERE nombre LIKE 'A%'</td></tr>
+          <tr><td class="mono">LIKE '%a'</td><td>Termina con a.</td><td class="mono">WHERE nombre LIKE '%a'</td></tr>
+          <tr><td class="mono">LIKE '%an%'</td><td>Contiene "an" en cualquier parte.</td><td class="mono">WHERE nombre LIKE '%an%'</td></tr>
+          <tr><td class="mono">LIKE '_a%'</td><td>Segunda letra es "a" (el guion bajo es un solo carácter).</td><td class="mono">WHERE nombre LIKE '_a%'</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <span class="example-label">Ejemplo 1: productos que empiezan con "A"</span>
+    <div class="code"><pre><span class="cm">-- Todos los productos cuyo nombre empieza con A</span>
+<span class="kw">SELECT</span> nombre <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'A%'</span>;</pre></div>
+    <p>Resultado: Arepas, Agua en botella.</p>
+
+    <span class="example-label ex2">Ejemplo 2: productos que contienen "de"</span>
+    <div class="code"><pre><span class="cm">-- Todos los productos cuyo nombre contiene "de"</span>
+<span class="kw">SELECT</span> nombre <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'%de%'</span>;</pre></div>
+    <p>Resultado: Jugo de mango, Agua en botella, Papas fritas (contiene "de" en "Papas <strong>de</strong> fritas"... espera, no. En realidad: Jugo <strong>de</strong> mango. Revisa tus datos).</p>
+
+    <span class="example-label ex3">Ejemplo 3: productos que terminan con "a"</span>
+    <div class="code"><pre><span class="cm">-- Todos los productos cuyo nombre termina con a</span>
+<span class="kw">SELECT</span> nombre <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'%a'</span>;</pre></div>
+    <p>Resultado: Gaseosa 400 ml, Empanada, Arepas, Papas fritas, Chitos no... depende de tus datos.</p>
+
+    <h3>IN: filtrar por una lista de valores</h3>
+
+    <span class="example-label">Ejemplo 4: productos en categorías específicas</span>
+    <div class="code"><pre><span class="cm">-- Productos de las categorías 1, 3 o 4 (equivalente a OR)</span>
+<span class="kw">SELECT</span> nombre, categoria_id <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> categoria_id <span class="kw">IN</span> (<span class="num">1</span>, <span class="num">3</span>, <span class="num">4</span>);</pre></div>
+    <p>Esto es equivalente a <span class="mono">WHERE categoria_id = 1 OR categoria_id = 3 OR categoria_id = 4</span>, pero más corto y legible.</p>
+
+    <span class="example-label ex2">Ejemplo 5: IN con texto</span>
+    <div class="code"><pre><span class="cm">-- Buscar clientes por nombre</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> clientes
+<span class="kw">WHERE</span> nombre <span class="kw">IN</span> (<span class="str">'Valentina Ruiz'</span>, <span class="str">'Carlos Peña'</span>);</pre></div>
+
+    <h3>BETWEEN: filtrar por un rango</h3>
+
+    <span class="example-label">Ejemplo 6: productos en un rango de precios</span>
+    <div class="code"><pre><span class="cm">-- Productos que cuestan entre 2000 y 3500 (inclusive)</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> precio <span class="kw">BETWEEN</span> <span class="num">2000</span> <span class="kw">AND</span> <span class="num">3500</span>;</pre></div>
+    <p>BETWEEN incluye ambos extremos. Es equivalente a <span class="mono">WHERE precio &gt;= 2000 AND precio &lt;= 3500</span>.</p>
+
+    <span class="example-label ex2">Ejemplo 7: BETWEEN con cantidades</span>
+    <div class="code"><pre><span class="cm">-- Productos con cantidad entre 20 y 50</span>
+<span class="kw">SELECT</span> nombre, cantidad <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> cantidad <span class="kw">BETWEEN</span> <span class="num">20</span> <span class="kw">AND</span> <span class="num">50</span>;</pre></div>
+
+    <h3>IS NULL: buscar valores vacíos</h3>
+
+    <span class="example-label">Ejemplo 8: clientes sin teléfono</span>
+    <div class="code"><pre><span class="cm">-- Clientes que no tienen teléfono registrado</span>
+<span class="kw">SELECT</span> nombre, telefono <span class="kw">FROM</span> clientes
+<span class="kw">WHERE</span> telefono <span class="kw">IS NULL</span>;</pre></div>
+    <p>Resultado: Luis Mora (su teléfono es NULL).</p>
+
+    <span class="example-label ex2">Ejemplo 9: clientes con teléfono</span>
+    <div class="code"><pre><span class="cm">-- Clientes que SÍ tienen teléfono registrado</span>
+<span class="kw">SELECT</span> nombre, telefono <span class="kw">FROM</span> clientes
+<span class="kw">WHERE</span> telefono <span class="kw">IS NOT NULL</span>;</pre></div>
+
+    <div class="note warn"><span class="tag">⚠️ Cuidado con NULL</span>No puedes usar <span class="mono">= NULL</span> ni <span class="mono">&lt;&gt; NULL</span>. NULL significa "desconocido", y no se puede comparar con operadores normales. <strong>Siempre</strong> usa <span class="mono">IS NULL</span> o <span class="mono">IS NOT NULL</span>.</div>
+
+    <h3>Mini reto ⚡</h3>
+    <p>Escribe una consulta que devuelva los productos cuyo nombre contiene la letra "o" y cuestan entre 1500 y 3000.</p>
+    <details class="qa sol">
+      <summary>Ver solución</summary>
+      <div><div class="code"><pre><span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'%o%'</span> <span class="kw">AND</span> precio <span class="kw">BETWEEN</span> <span class="num">1500</span> <span class="kw">AND</span> <span class="num">3000</span>;</pre></div>
+      <p>Resultado: Jugo de mango (3000), Agua en botella (1500), Chocolate (3500) no porque supera 3000.</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 04 · ORDER BY Y TOP ═══════════ -->
+<section id="orden" class="unit u4">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">04</span>
+      <h2 class="h2">ORDER BY y TOP: ordenar y limitar</h2>
+      <span class="unit-time">⏱ 15 min práctica</span>
+    </div>
+
+    <h3>ORDER BY: ordenar los resultados</h3>
+
+    <span class="example-label">Ejemplo 1: ordenar ascendente (por defecto)</span>
+    <div class="code"><pre><span class="cm">-- Productos ordenados por precio de menor a mayor</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 2: ordenar descendente</span>
+    <div class="code"><pre><span class="cm">-- Productos ordenados por precio de mayor a menor</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio <span class="kw">DESC</span>;</pre></div>
+
+    <span class="example-label ex3">Ejemplo 3: ordenar por varias columnas</span>
+    <div class="code"><pre><span class="cm">-- Ordenar por categoría y luego por precio dentro de cada categoría</span>
+<span class="kw">SELECT</span> nombre, categoria_id, precio <span class="kw">FROM</span> productos
+<span class="kw">ORDER BY</span> categoria_id, precio <span class="kw">DESC</span>;</pre></div>
+
+    <h3>TOP: limitar la cantidad de filas</h3>
+
+    <span class="example-label">Ejemplo 4: los 3 productos más caros</span>
+    <div class="code"><pre><span class="cm">-- Los 3 productos más caros</span>
+<span class="kw">SELECT TOP</span> <span class="num">3</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio <span class="kw">DESC</span>;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 5: los 5 productos más baratos</span>
+    <div class="code"><pre><span class="cm">-- Los 5 productos más baratos</span>
+<span class="kw">SELECT TOP</span> <span class="num">5</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio;</pre></div>
+
+    <span class="example-label ex3">Ejemplo 6: TOP con porcentaje</span>
+    <div class="code"><pre><span class="cm">-- El 20% de los productos más caros</span>
+<span class="kw">SELECT TOP</span> <span class="num">20</span> <span class="kw">PERCENT</span> nombre, precio <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio <span class="kw">DESC</span>;</pre></div>
+
+    <div class="note tip"><span class="tag">💡 El orden importa</span><span class="mono">TOP</span> sin <span class="mono">ORDER BY</span> devuelve las primeras filas que SQL Server encuentre, que pueden no ser las que esperas. <strong>Siempre combina TOP con ORDER BY</strong> para obtener resultados predecibles.</div>
+
+    <h3>Mini reto ⚡</h3>
+    <p>Escribe la consulta que devuelva los 2 productos con mayor cantidad en inventario.</p>
+    <details class="qa sol">
+      <summary>Ver solución</summary>
+      <div><div class="code"><pre><span class="kw">SELECT TOP</span> <span class="num">2</span> nombre, cantidad <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> cantidad <span class="kw">DESC</span>;</pre></div>
+      <p>Resultado: Agua en botella (60), Bon Bon Bum (50).</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 05 · FUNCIONES DE AGREGADO ═══════════ -->
+<section id="agregado" class="unit u5 dark">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">05</span>
+      <h2 class="h2">Funciones de agregado y DISTINCT</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <p>Las funciones de agregado <strong>resumen</strong> un conjunto de filas en un solo valor. Son la base de los reportes y análisis.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Función</th><th>Qué hace</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">COUNT(*)</td><td>Cuenta las filas.</td><td class="mono">SELECT COUNT(*) FROM productos;</td></tr>
+          <tr><td class="mono">SUM(col)</td><td>Suma los valores de una columna.</td><td class="mono">SELECT SUM(precio) FROM productos;</td></tr>
+          <tr><td class="mono">AVG(col)</td><td>Calcula el promedio.</td><td class="mono">SELECT AVG(precio) FROM productos;</td></tr>
+          <tr><td class="mono">MIN(col)</td><td>Devuelve el valor mínimo.</td><td class="mono">SELECT MIN(precio) FROM productos;</td></tr>
+          <tr><td class="mono">MAX(col)</td><td>Devuelve el valor máximo.</td><td class="mono">SELECT MAX(precio) FROM productos;</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Ejemplos básicos</h3>
+
+    <span class="example-label">Ejemplo 1: contar productos</span>
+    <div class="code"><pre><span class="cm">-- ¿Cuántos productos hay en total?</span>
+<span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> productos;</pre></div>
+    <p>Resultado: 10.</p>
+
+    <span class="example-label ex2">Ejemplo 2: contar productos activos</span>
+    <div class="code"><pre><span class="cm">-- ¿Cuántos productos están activos?</span>
+<span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> productos <span class="kw">WHERE</span> activo = <span class="num">1</span>;</pre></div>
+    <p>Resultado: 9 (todos menos Café).</p>
+
+    <span class="example-label ex3">Ejemplo 3: suma total del inventario</span>
+    <div class="code"><pre><span class="cm">-- ¿Cuál es el valor total del inventario (precio × cantidad)?</span>
+<span class="kw">SELECT</span> <span class="kw">SUM</span>(precio * cantidad) <span class="kw">FROM</span> productos;</pre></div>
+
+    <span class="example-label">Ejemplo 4: precio promedio</span>
+    <div class="code"><pre><span class="cm">-- ¿Cuál es el precio promedio de los productos?</span>
+<span class="kw">SELECT</span> <span class="kw">AVG</span>(precio) <span class="kw">FROM</span> productos;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 5: producto más caro y más barato</span>
+    <div class="code"><pre><span class="cm">-- El precio más alto y el más bajo</span>
+<span class="kw">SELECT</span> <span class="kw">MAX</span>(precio) <span class="kw">AS</span> mas_caro, <span class="kw">MIN</span>(precio) <span class="kw">AS</span> mas_barato <span class="kw">FROM</span> productos;</pre></div>
+    <p>Resultado: mas_caro = 4000, mas_barato = 800.</p>
+
+    <h3>DISTINCT: eliminar duplicados</h3>
+
+    <span class="example-label">Ejemplo 6: categorías únicas</span>
+    <div class="code"><pre><span class="cm">-- ¿Qué categorías distintas tienen los productos?</span>
+<span class="kw">SELECT DISTINCT</span> categoria_id <span class="kw">FROM</span> productos;</pre></div>
+    <p>Resultado: 1, 2, 3, 4 (cada categoría aparece una sola vez, aunque haya varios productos en ella).</p>
+
+    <span class="example-label ex2">Ejemplo 7: contar categorías distintas</span>
+    <div class="code"><pre><span class="cm">-- ¿En cuántas categorías diferentes hay productos?</span>
+<span class="kw">SELECT</span> <span class="kw">COUNT</span>(<span class="kw">DISTINCT</span> categoria_id) <span class="kw">FROM</span> productos;</pre></div>
+    <p>Resultado: 4.</p>
+
+    <h3>Renombrar columnas con AS</h3>
+
+    <span class="example-label ex3">Ejemplo 8: alias para resultados más claros</span>
+    <div class="code"><pre><span class="cm">-- Usar alias para que el resultado sea más legible</span>
+<span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">AS</span> total_productos,
+       <span class="kw">AVG</span>(precio) <span class="kw">AS</span> precio_promedio,
+       <span class="kw">MAX</span>(precio) <span class="kw">AS</span> precio_maximo
+<span class="kw">FROM</span> productos;</pre></div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 06 · GROUP BY Y HAVING ═══════════ -->
+<section id="group" class="unit u6">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">06</span>
+      <h2 class="h2">GROUP BY y HAVING: agrupar y filtrar grupos</h2>
+      <span class="unit-time">⏱ 20 min práctica</span>
+    </div>
+
+    <div class="def-big"><strong>GROUP BY</strong> agrupa las filas por una o más columnas y calcula las funciones de agregado para cada grupo. <strong>HAVING</strong> filtra los grupos después de calcular los agregados (es el WHERE de los grupos).</div>
+
+    <h3>Ejemplos con GROUP BY</h3>
+
+    <span class="example-label">Ejemplo 1: contar productos por categoría</span>
+    <div class="code"><pre><span class="cm">-- ¿Cuántos productos hay en cada categoría?</span>
+<span class="kw">SELECT</span> categoria_id, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> cantidad
+<span class="kw">FROM</span> productos
+<span class="kw">GROUP BY</span> categoria_id;</pre></div>
+    <p>Resultado: categoría 1 tiene 4 productos, categoría 2 tiene 2, categoría 3 tiene 2, categoría 4 tiene 2.</p>
+
+    <span class="example-label ex2">Ejemplo 2: precio promedio por categoría</span>
+    <div class="code"><pre><span class="cm">-- ¿Cuál es el precio promedio en cada categoría?</span>
+<span class="kw">SELECT</span> categoria_id, <span class="kw">AVG</span>(precio) <span class="kw">AS</span> precio_promedio
+<span class="kw">FROM</span> productos
+<span class="kw">GROUP BY</span> categoria_id;</pre></div>
+
+    <span class="example-label ex3">Ejemplo 3: valor total del inventario por categoría</span>
+    <div class="code"><pre><span class="cm">-- ¿Cuánto vale el inventario de cada categoría?</span>
+<span class="kw">SELECT</span> categoria_id, <span class="kw">SUM</span>(precio * cantidad) <span class="kw">AS</span> valor_inventario
+<span class="kw">FROM</span> productos
+<span class="kw">GROUP BY</span> categoria_id;</pre></div>
+
+    <h3>Ejemplos con HAVING</h3>
+
+    <span class="example-label">Ejemplo 4: categorías con más de 2 productos</span>
+    <div class="code"><pre><span class="cm">-- ¿Qué categorías tienen más de 2 productos?</span>
+<span class="kw">SELECT</span> categoria_id, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> cantidad
+<span class="kw">FROM</span> productos
+<span class="kw">GROUP BY</span> categoria_id
+<span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt; <span class="num">2</span>;</pre></div>
+    <p>Resultado: solo la categoría 1 (Bebidas) tiene 4 productos.</p>
+
+    <span class="example-label ex2">Ejemplo 5: categorías con precio promedio mayor a 2500</span>
+    <div class="code"><pre><span class="cm">-- ¿Qué categorías tienen un precio promedio mayor a 2500?</span>
+<span class="kw">SELECT</span> categoria_id, <span class="kw">AVG</span>(precio) <span class="kw">AS</span> precio_promedio
+<span class="kw">FROM</span> productos
+<span class="kw">GROUP BY</span> categoria_id
+<span class="kw">HAVING</span> <span class="kw">AVG</span>(precio) &gt; <span class="num">2500</span>;</pre></div>
+
+    <h3>WHERE vs HAVING</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Cláusula</th><th>Cuándo se aplica</th><th>Qué filtra</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">WHERE</td><td>Antes de agrupar.</td><td>Filas individuales.</td></tr>
+          <tr><td class="mono">HAVING</td><td>Después de agrupar.</td><td>Grupos completos.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <span class="example-label ex3">Ejemplo 6: WHERE y HAVING juntos</span>
+    <div class="code"><pre><span class="cm">-- Solo productos activos, agrupados por categoría,</span>
+<span class="cm">-- mostrando solo las categorías con más de 1 producto activo</span>
+<span class="kw">SELECT</span> categoria_id, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> cantidad
+<span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> activo = <span class="num">1</span>              <span class="cm">-- filtra filas individuales</span>
+<span class="kw">GROUP BY</span> categoria_id
+<span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt; <span class="num">1</span>;         <span class="cm">-- filtra grupos</span></pre></div>
+
+    <h3>Mini reto ⚡</h3>
+    <p>Escribe una consulta que muestre la cantidad total de unidades en inventario por cada categoría, pero solo para las categorías que tienen más de 30 unidades en total.</p>
+    <details class="qa sol">
+      <summary>Ver solución</summary>
+      <div><div class="code"><pre><span class="kw">SELECT</span> categoria_id, <span class="kw">SUM</span>(cantidad) <span class="kw">AS</span> total_unidades
+<span class="kw">FROM</span> productos
+<span class="kw">GROUP BY</span> categoria_id
+<span class="kw">HAVING</span> <span class="kw">SUM</span>(cantidad) &gt; <span class="num">30</span>;</pre></div></div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 07 · TALLER MASIVO ═══════════ -->
+<section id="taller" class="unit u7">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">07</span>
+      <h2 class="h2">Taller: 12 ejercicios para dominar SELECT</h2>
+      <span class="unit-time">⏱ 120 min · laboratorio</span>
+    </div>
+    <p>Estos 12 ejercicios cubren todos los conceptos de esta entrega. Resuélvelos en orden, consulta las soluciones solo después de intentarlo, y marca cada uno cuando lo domines.</p>
+    <div class="note instructor"><span class="tag">👩‍🏫 Nota para el instructor(a)</span>Sugerencia de 4 sesiones — <strong>S1:</strong> Unidades 01-02 + Ejercicios 1-3 · <strong>S2:</strong> Unidad 03 + Ejercicios 4-6 · <strong>S3:</strong> Unidades 04-05 + Ejercicios 7-9 · <strong>S4:</strong> Unidad 06 + Ejercicios 10-12 con socialización.</div>
+
+    <!-- E1 -->
+    <article class="act a1">
+      <div class="act-head"><span class="act-num">E1</span><h3>WHERE básico: igualdad y comparación</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas sobre la tabla <span class="mono">productos</span>:</p>
+        <ul class="tick">
+          <li>a) Todos los productos que cuestan exactamente 2500.</li>
+          <li>b) Todos los productos que cuestan más de 3000.</li>
+          <li>c) Todos los productos que cuestan menos de 2000.</li>
+          <li>d) Todos los productos que NO están en la categoría 1.</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 4 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> precio = <span class="num">2500</span>;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> precio &gt; <span class="num">3000</span>;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> precio &lt; <span class="num">2000</span>;
+<span class="cm">-- d</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> categoria_id &lt;&gt; <span class="num">1</span>;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E2 -->
+    <article class="act a2">
+      <div class="act-head"><span class="act-num">E2</span><h3>AND, OR, NOT: combinar condiciones</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) Productos de la categoría 2 que cuestan más de 2000.</li>
+          <li>b) Productos de la categoría 1 o de la categoría 4.</li>
+          <li>c) Productos activos que cuestan entre 2000 y 3500.</li>
+          <li>d) Productos que NO son de la categoría 3.</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 4 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> categoria_id = <span class="num">2</span> <span class="kw">AND</span> precio &gt; <span class="num">2000</span>;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> categoria_id = <span class="num">1</span> <span class="kw">OR</span> categoria_id = <span class="num">4</span>;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> activo = <span class="num">1</span> <span class="kw">AND</span> precio <span class="kw">BETWEEN</span> <span class="num">2000</span> <span class="kw">AND</span> <span class="num">3500</span>;
+<span class="cm">-- d</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> <span class="kw">NOT</span> categoria_id = <span class="num">3</span>;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E3 -->
+    <article class="act a3">
+      <div class="act-head"><span class="act-num">E3</span><h3>LIKE: buscar patrones</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) Productos cuyo nombre empieza con "A".</li>
+          <li>b) Productos cuyo nombre termina con "a".</li>
+          <li>c) Productos cuyo nombre contiene "de".</li>
+          <li>d) Productos cuyo nombre tiene exactamente 5 letras (pista: usa <span class="mono">LIKE '_____'</span> con 5 guiones bajos).</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 4 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'A%'</span>;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'%a'</span>;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'%de%'</span>;
+<span class="cm">-- d</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'_____'</span>;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E4 -->
+    <article class="act a4">
+      <div class="act-head"><span class="act-num">E4</span><h3>IN y BETWEEN: listas y rangos</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) Productos de las categorías 1, 2 o 3 (usando IN).</li>
+          <li>b) Productos que cuestan entre 1500 y 3000 (usando BETWEEN).</li>
+          <li>c) Productos con cantidad entre 20 y 50 (usando BETWEEN).</li>
+          <li>d) Clientes que se llaman Valentina Ruiz o Carlos Peña (usando IN).</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 4 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> categoria_id <span class="kw">IN</span> (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>);
+<span class="cm">-- b</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> precio <span class="kw">BETWEEN</span> <span class="num">1500</span> <span class="kw">AND</span> <span class="num">3000</span>;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> cantidad <span class="kw">BETWEEN</span> <span class="num">20</span> <span class="kw">AND</span> <span class="num">50</span>;
+<span class="cm">-- d</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> clientes <span class="kw">WHERE</span> nombre <span class="kw">IN</span> (<span class="str">'Valentina Ruiz'</span>, <span class="str">'Carlos Peña'</span>);</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E5 -->
+    <article class="act a5">
+      <div class="act-head"><span class="act-num">E5</span><h3>IS NULL: buscar valores vacíos</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas sobre la tabla <span class="mono">clientes</span>:</p>
+        <ul class="tick">
+          <li>a) Clientes que NO tienen teléfono registrado.</li>
+          <li>b) Clientes que SÍ tienen teléfono registrado.</li>
+          <li>c) El nombre y teléfono de todos los clientes, mostrando "Sin teléfono" donde sea NULL (pista: usa <span class="mono">ISNULL(telefono, 'Sin teléfono')</span>).</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 3 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> clientes <span class="kw">WHERE</span> telefono <span class="kw">IS NULL</span>;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> clientes <span class="kw">WHERE</span> telefono <span class="kw">IS NOT NULL</span>;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> nombre, <span class="kw">ISNULL</span>(telefono, <span class="str">'Sin teléfono'</span>) <span class="kw">AS</span> telefono <span class="kw">FROM</span> clientes;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E6 -->
+    <article class="act a6">
+      <div class="act-head"><span class="act-num">E6</span><h3>ORDER BY y TOP: ordenar y limitar</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) Todos los productos ordenados por precio de menor a mayor.</li>
+          <li>b) Todos los productos ordenados por precio de mayor a menor.</li>
+          <li>c) Los 3 productos más caros.</li>
+          <li>d) Los 5 productos con mayor cantidad en inventario.</li>
+          <li>e) El 20% de los productos más baratos.</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 5 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio <span class="kw">DESC</span>;
+<span class="cm">-- c</span> <span class="kw">SELECT TOP</span> <span class="num">3</span> * <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio <span class="kw">DESC</span>;
+<span class="cm">-- d</span> <span class="kw">SELECT TOP</span> <span class="num">5</span> * <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> cantidad <span class="kw">DESC</span>;
+<span class="cm">-- e</span> <span class="kw">SELECT TOP</span> <span class="num">20</span> <span class="kw">PERCENT</span> * <span class="kw">FROM</span> productos <span class="kw">ORDER BY</span> precio;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E7 -->
+    <article class="act a7">
+      <div class="act-head"><span class="act-num">E7</span><h3>COUNT: contar filas</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) ¿Cuántos productos hay en total?</li>
+          <li>b) ¿Cuántos productos están activos?</li>
+          <li>c) ¿Cuántos productos están inactivos?</li>
+          <li>d) ¿Cuántos productos cuestan más de 2500?</li>
+          <li>e) ¿Cuántos clientes hay registrados?</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 5 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> productos;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> productos <span class="kw">WHERE</span> activo = <span class="num">1</span>;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> productos <span class="kw">WHERE</span> activo = <span class="num">0</span>;
+<span class="cm">-- d</span> <span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> productos <span class="kw">WHERE</span> precio &gt; <span class="num">2500</span>;
+<span class="cm">-- e</span> <span class="kw">SELECT</span> <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> clientes;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E8 -->
+    <article class="act a8">
+      <div class="act-head"><span class="act-num">E8</span><h3>SUM, AVG, MIN, MAX: sumar, promediar, mínimos y máximos</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) La suma total de todos los precios.</li>
+          <li>b) El precio promedio de todos los productos.</li>
+          <li>c) El precio más alto y el más bajo (en una sola consulta, usando dos columnas).</li>
+          <li>d) La cantidad total de unidades en inventario.</li>
+          <li>e) El valor total del inventario (precio × cantidad).</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 5 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> <span class="kw">SUM</span>(precio) <span class="kw">FROM</span> productos;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> <span class="kw">AVG</span>(precio) <span class="kw">FROM</span> productos;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> <span class="kw">MAX</span>(precio) <span class="kw">AS</span> mas_caro, <span class="kw">MIN</span>(precio) <span class="kw">AS</span> mas_barato <span class="kw">FROM</span> productos;
+<span class="cm">-- d</span> <span class="kw">SELECT</span> <span class="kw">SUM</span>(cantidad) <span class="kw">FROM</span> productos;
+<span class="cm">-- e</span> <span class="kw">SELECT</span> <span class="kw">SUM</span>(precio * cantidad) <span class="kw">FROM</span> productos;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E9 -->
+    <article class="act a9">
+      <div class="act-head"><span class="act-num">E9</span><h3>DISTINCT: eliminar duplicados</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) Las categorías distintas que tienen productos.</li>
+          <li>b) ¿En cuántas categorías diferentes hay productos?</li>
+          <li>c) Los niveles de precio distintos (redondeados a centenas, pista: usa <span class="mono">ROUND(precio, -2)</span>).</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 3 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT DISTINCT</span> categoria_id <span class="kw">FROM</span> productos;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> <span class="kw">COUNT</span>(<span class="kw">DISTINCT</span> categoria_id) <span class="kw">FROM</span> productos;
+<span class="cm">-- c</span> <span class="kw">SELECT DISTINCT</span> <span class="kw">ROUND</span>(precio, -<span class="num">2</span>) <span class="kw">AS</span> nivel_precio <span class="kw">FROM</span> productos;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E10 -->
+    <article class="act a10">
+      <div class="act-head"><span class="act-num">E10</span><h3>GROUP BY: agrupar resultados</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) ¿Cuántos productos hay en cada categoría?</li>
+          <li>b) ¿Cuál es el precio promedio en cada categoría?</li>
+          <li>c) ¿Cuál es la cantidad total de unidades en inventario por categoría?</li>
+          <li>d) ¿Cuál es el valor total del inventario por categoría (precio × cantidad)?</li>
+          <li>e) ¿Cuántos clientes hizo cada pedido? (sobre la tabla pedidos)</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 5 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> categoria_id, <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> categoria_id, <span class="kw">AVG</span>(precio) <span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> categoria_id, <span class="kw">SUM</span>(cantidad) <span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id;
+<span class="cm">-- d</span> <span class="kw">SELECT</span> categoria_id, <span class="kw">SUM</span>(precio * cantidad) <span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id;
+<span class="cm">-- e</span> <span class="kw">SELECT</span> cliente_id, <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> pedidos <span class="kw">GROUP BY</span> cliente_id;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E11 -->
+    <article class="act a11">
+      <div class="act-head"><span class="act-num">E11</span><h3>HAVING: filtrar grupos</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Escribe las siguientes consultas:</p>
+        <ul class="tick">
+          <li>a) Las categorías que tienen más de 2 productos.</li>
+          <li>b) Las categorías cuyo precio promedio es mayor a 2500.</li>
+          <li>c) Las categorías con más de 30 unidades en inventario.</li>
+          <li>d) Los clientes que han hecho más de 1 pedido (sobre la tabla pedidos).</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tus 4 consultas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><div class="code"><pre><span class="cm">-- a</span> <span class="kw">SELECT</span> categoria_id, <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id <span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt; <span class="num">2</span>;
+<span class="cm">-- b</span> <span class="kw">SELECT</span> categoria_id, <span class="kw">AVG</span>(precio) <span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id <span class="kw">HAVING</span> <span class="kw">AVG</span>(precio) &gt; <span class="num">2500</span>;
+<span class="cm">-- c</span> <span class="kw">SELECT</span> categoria_id, <span class="kw">SUM</span>(cantidad) <span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id <span class="kw">HAVING</span> <span class="kw">SUM</span>(cantidad) &gt; <span class="num">30</span>;
+<span class="cm">-- d</span> <span class="kw">SELECT</span> cliente_id, <span class="kw">COUNT</span>(*) <span class="kw">FROM</span> pedidos <span class="kw">GROUP BY</span> cliente_id <span class="kw">HAVING</span> <span class="kw">COUNT</span>(*) &gt; <span class="num">1</span>;</pre></div></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E12 · RETO -->
+    <article class="act a12">
+      <div class="act-head"><span class="act-num">E12</span><h3>🏆 Reto integrador: el informe de la tienda</h3><span class="mini-time">⏱ 20 min · equipos</span></div>
+      <div class="act-body">
+        <p>El gerente de la tienda escolar te pidió un informe. Escribe las siguientes consultas <strong>combinando todos los conceptos</strong> de esta entrega:</p>
+        <ul class="tick">
+          <li>a) Los 3 productos más caros que están activos.</li>
+          <li>b) El nombre y precio de los productos de la categoría 1 que cuestan entre 2000 y 3500, ordenados por precio de mayor a menor.</li>
+          <li>c) El número de productos activos e inactivos por categoría.</li>
+          <li>d) Las categorías cuyo valor total de inventario supera los 100000.</li>
+          <li>e) El precio promedio de los productos activos vs. los inactivos.</li>
+          <li>f) Los nombres de los productos que empiezan con vocal (A, E, I, O, U).</li>
+        </ul>
+        <div class="answer">✏️ Espacio de borrador del equipo.</div>
+        <details class="qa"><summary>💡 Pista</summary><div><p>Para el punto (f), puedes usar <span class="mono">WHERE nombre LIKE 'A%' OR nombre LIKE 'E%' OR ...</span> o más elegante: <span class="mono">WHERE nombre LIKE '[AEIOU]%'</span>.</p></div></details>
+        <details class="qa sol"><summary>🔍 Solución completa</summary>
+          <div><div class="code"><pre><span class="cm">-- a) Los 3 productos más caros que están activos</span>
+<span class="kw">SELECT TOP</span> <span class="num">3</span> nombre, precio <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> activo = <span class="num">1</span> <span class="kw">ORDER BY</span> precio <span class="kw">DESC</span>;
+
+<span class="cm">-- b) Productos de la categoría 1 entre 2000 y 3500, ordenados</span>
+<span class="kw">SELECT</span> nombre, precio <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> categoria_id = <span class="num">1</span> <span class="kw">AND</span> precio <span class="kw">BETWEEN</span> <span class="num">2000</span> <span class="kw">AND</span> <span class="num">3500</span>
+<span class="kw">ORDER BY</span> precio <span class="kw">DESC</span>;
+
+<span class="cm">-- c) Número de productos activos e inactivos por categoría</span>
+<span class="kw">SELECT</span> categoria_id, activo, <span class="kw">COUNT</span>(*) <span class="kw">AS</span> cantidad
+<span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id, activo <span class="kw">ORDER BY</span> categoria_id;
+
+<span class="cm">-- d) Categorías con valor de inventario superior a 100000</span>
+<span class="kw">SELECT</span> categoria_id, <span class="kw">SUM</span>(precio * cantidad) <span class="kw">AS</span> valor_inventario
+<span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> categoria_id
+<span class="kw">HAVING</span> <span class="kw">SUM</span>(precio * cantidad) &gt; <span class="num">100000</span>;
+
+<span class="cm">-- e) Precio promedio de activos vs inactivos</span>
+<span class="kw">SELECT</span> activo, <span class="kw">AVG</span>(precio) <span class="kw">AS</span> precio_promedio
+<span class="kw">FROM</span> productos <span class="kw">GROUP BY</span> activo;
+
+<span class="cm">-- f) Productos que empiezan con vocal</span>
+<span class="kw">SELECT</span> nombre <span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> nombre <span class="kw">LIKE</span> <span class="str">'[AEIOU]%'</span>;</pre></div>
+          <p>Este reto combina WHERE, BETWEEN, ORDER BY, TOP, COUNT, SUM, AVG, GROUP BY, HAVING y LIKE. Si tu equipo lo resuelve completo, dominan SELECT. ¡Felicitaciones! 🎉</p></div>
+        </details>
+
+        <h3 style="font-size:1.05rem;margin-top:1.4rem">Rúbrica del taller</h3>
+        <div class="table-wrap">
+          <table class="data small rubric">
+            <thead><tr><th>Criterio</th><th>En proceso (1–2)</th><th>Logrado (3–4)</th><th>Destacado (5)</th></tr></thead>
+            <tbody>
+              <tr><td>WHERE básico</td><td>Confunde los operadores.</td><td>Usa correctamente =, &lt;&gt;, &lt;, &gt;, &lt;=, &gt;=.</td><td>Además compara texto y fechas.</td></tr>
+              <tr><td>AND, OR, NOT</td><td>No usa paréntesis cuando es necesario.</td><td>Combina condiciones correctamente.</td><td>Explica el orden de evaluación.</td></tr>
+              <tr><td>LIKE, IN, BETWEEN</td><td>Confunde % y _ en LIKE.</td><td>Usa los tres filtros correctamente.</td><td>Combina LIKE con otros operadores.</td></tr>
+              <tr><td>ORDER BY y TOP</td><td>Usa TOP sin ORDER BY.</td><td>Ordena y limita correctamente.</td><td>Usa TOP PERCENT y ordenamiento por varias columnas.</td></tr>
+              <tr><td>Funciones de agregado</td><td>Confunde COUNT con SUM.</td><td>Usa COUNT, SUM, AVG, MIN, MAX correctamente.</td><td>Usa alias y combina funciones en una consulta.</td></tr>
+              <tr><td>GROUP BY y HAVING</td><td>No distingue WHERE de HAVING.</td><td>Agrupa y filtra grupos correctamente.</td><td>Combina WHERE, GROUP BY y HAVING en una consulta.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- AUTOEVALUACIÓN -->
+    <h3 style="margin-top:2.5rem">✅ Autoevaluación del aprendiz</h3>
+    <p>Marca con honestidad y suma tus ✔:</p>
+    <ul class="tick">
+      <li>Uso WHERE con todos los operadores de comparación.</li>
+      <li>Combino condiciones con AND, OR y NOT usando paréntesis.</li>
+      <li>Uso LIKE con % y _ para buscar patrones en texto.</li>
+      <li>Uso IN para filtrar por listas de valores.</li>
+      <li>Uso BETWEEN para filtrar por rangos.</li>
+      <li>Uso IS NULL e IS NOT NULL correctamente.</li>
+      <li>Ordeno resultados con ORDER BY ASC y DESC.</li>
+      <li>Limito resultados con TOP y TOP PERCENT.</li>
+      <li>Uso COUNT, SUM, AVG, MIN y MAX.</li>
+      <li>Elimino duplicados con DISTINCT.</li>
+      <li>Agrupo resultados con GROUP BY.</li>
+      <li>Filtro grupos con HAVING.</li>
+    </ul>
+    <div class="score-note">
+      <span class="s1">10–12 ✔ ¡Dominas SELECT! Listo para BD·109: JOIN.</span>
+      <span class="s2">6–9 ✔ Repite los ejercicios que te fallaron</span>
+      <span class="s3">0–5 ✔ Vuelve a la Unidad 01 y practica más</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CHULETA ═══════════ -->
+<section id="chuleta" class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">§</span>
+      <h2 class="h2">Chuleta de esta entrega</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Cláusula</th><th>Sintaxis</th><th>Para qué sirve</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">WHERE</td><td class="mono">WHERE condición</td><td>Filtrar filas individuales.</td></tr>
+          <tr><td class="mono">AND / OR / NOT</td><td class="mono">WHERE cond1 AND cond2</td><td>Combinar condiciones.</td></tr>
+          <tr><td class="mono">LIKE</td><td class="mono">WHERE col LIKE 'patrón%'</td><td>Buscar patrones en texto.</td></tr>
+          <tr><td class="mono">IN</td><td class="mono">WHERE col IN (val1, val2)</td><td>Filtrar por lista de valores.</td></tr>
+          <tr><td class="mono">BETWEEN</td><td class="mono">WHERE col BETWEEN a AND b</td><td>Filtrar por rango.</td></tr>
+          <tr><td class="mono">IS NULL</td><td class="mono">WHERE col IS NULL</td><td>Buscar valores vacíos.</td></tr>
+          <tr><td class="mono">ORDER BY</td><td class="mono">ORDER BY col ASC/DESC</td><td>Ordenar resultados.</td></tr>
+          <tr><td class="mono">TOP</td><td class="mono">SELECT TOP N col</td><td>Limitar cantidad de filas.</td></tr>
+          <tr><td class="mono">DISTINCT</td><td class="mono">SELECT DISTINCT col</td><td>Eliminar duplicados.</td></tr>
+          <tr><td class="mono">COUNT, SUM, AVG, MIN, MAX</td><td class="mono">SELECT COUNT(*) FROM tabla</td><td>Funciones de agregado.</td></tr>
+          <tr><td class="mono">GROUP BY</td><td class="mono">GROUP BY col</td><td>Agrupar resultados.</td></tr>
+          <tr><td class="mono">HAVING</td><td class="mono">HAVING COUNT(*) &gt; 2</td><td>Filtrar grupos.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><span class="tag">🔜 Próxima entrega</span>BD·109: <strong>JOIN: unir tablas</strong>. Aprenderás a combinar datos de varias tablas con INNER JOIN y LEFT JOIN, el paso final antes del proyecto integrador BD·110.</div>
+  </div>
+</section>
+
+<!-- ═══════════ GLOSARIO ═══════════ -->
+<section class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">§</span>
+      <h2 class="h2">Mini glosario de esta entrega</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <dl class="gloss">
+      <div class="term"><dt>WHERE</dt><dd>Cláusula que filtra las filas de una consulta según una condición.</dd></div>
+      <div class="term"><dt>AND / OR / NOT</dt><dd>Operadores lógicos para combinar condiciones en WHERE.</dd></div>
+      <div class="term"><dt>LIKE</dt><dd>Operador para buscar patrones en texto. Usa % (cualquier cantidad de caracteres) y _ (un solo carácter).</dd></div>
+      <div class="term"><dt>IN</dt><dd>Operador para filtrar por una lista de valores específicos.</dd></div>
+      <div class="term"><dt>BETWEEN</dt><dd>Operador para filtrar por un rango de valores (inclusive).</dd></div>
+      <div class="term"><dt>IS NULL / IS NOT NULL</dt><dd>Operadores para buscar valores vacíos o no vacíos. No se puede usar = NULL.</dd></div>
+      <div class="term"><dt>ORDER BY</dt><dd>Cláusula para ordenar los resultados por una o más columnas.</dd></div>
+      <div class="term"><dt>TOP</dt><dd>Cláusula para limitar la cantidad de filas devueltas.</dd></div>
+      <div class="term"><dt>DISTINCT</dt><dd>Cláusula para eliminar filas duplicadas del resultado.</dd></div>
+      <div class="term"><dt>COUNT, SUM, AVG, MIN, MAX</dt><dd>Funciones de agregado que resumen un conjunto de filas en un solo valor.</dd></div>
+      <div class="term"><dt>GROUP BY</dt><dd>Cláusula que agrupa filas por una o más columnas para calcular agregados por grupo.</dd></div>
+      <div class="term"><dt>HAVING</dt><dd>Cláusula que filtra los grupos después de calcular los agregados. Es el WHERE de los grupos.</dd></div>
+    </dl>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="foot-brand">BD·108 — SELECT con superpoderes (SQL Server)</div>
+      <small>Fase 4 · Consultar (DQL) del tutorial de bases de datos · Versión 1.0 · 2026 · Permitida su reproducción con fines educativos citando la fuente.<br>Construido solo con HTML y CSS — cero JavaScript. También puedes imprimirlo (Ctrl/Cmd + P).</small>
+    </div>
+    <div class="top-link"><a href="#inicio">↑ Volver arriba</a></div>
+  </div>
+</footer>
+</body>
+</html>

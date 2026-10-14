@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tutorial de DML en SQL Server: INSERT, UPDATE, DELETE, el orden con FK y una introducción a transacciones.">
+<title>El ciclo CRUD · BD·107 · SQL Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600;700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0e2b25; --ink-soft:#3c5a52;
+  --paper:#f2f5ef; --card:#ffffff;
+  --teal:#0f7f68; --teal-deep:#0a5747;
+  --amber:#ffb63d; --amber-deep:#a15c00;
+  --coral:#ff6d5a; --sky:#3f7fe0;
+  --line:#d9e1d7;
+  --shadow:8px 8px 0 rgba(14,43,37,.14);
+  --shadow-sm:4px 4px 0 rgba(14,43,37,.14);
+  --display:'Bricolage Grotesque','Arial Black',sans-serif;
+  --body:'Public Sans','Segoe UI',sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body);color:var(--ink);line-height:1.65;
+  background:
+    radial-gradient(900px 420px at 85% -80px, rgba(15,127,104,.16), transparent 60%),
+    radial-gradient(700px 400px at -10% 35%, rgba(255,182,61,.14), transparent 55%),
+    linear-gradient(rgba(14,43,37,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,43,37,.05) 1px, transparent 1px),
+    var(--paper);
+  background-size:auto,auto,34px 34px,34px 34px,auto;
+}
+section{scroll-margin-top:84px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 1.25rem}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:8px;top:8px;background:var(--amber);color:var(--ink);padding:.5rem .9rem;z-index:99;border-radius:8px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#e9f2ec;border-bottom:4px solid var(--amber);display:flex;align-items:center;flex-wrap:wrap;gap:.6rem 1.4rem;padding:.65rem 1.25rem}
+.brand{display:flex;align-items:center;gap:.6rem;color:#fff;text-decoration:none;font-family:var(--display);font-weight:800;font-size:1.05rem}
+.brand-badge{background:var(--amber);color:var(--ink);font-family:var(--mono);font-weight:700;padding:.18rem .5rem;border-radius:8px;box-shadow:2px 2px 0 rgba(0,0,0,.4)}
+.brand small{font-family:var(--mono);font-weight:400;font-size:.7rem;color:#9fc3b6;letter-spacing:.12em;text-transform:uppercase}
+.topbar nav{display:flex;flex-wrap:wrap;gap:.15rem;margin-left:auto}
+.topbar nav a{color:#dcebe3;text-decoration:none;font-size:.86rem;font-weight:600;padding:.35rem .75rem;border-radius:999px;transition:background .2s,color .2s}
+.topbar nav a:hover,.topbar nav a:focus-visible{background:rgba(255,182,61,.2);color:#ffd98a}
+
+.hero{padding:4.2rem 0 3rem}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:3rem;align-items:center}
+.kicker{font-family:var(--mono);font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-deep);font-weight:600;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
+.blink{display:inline-block;width:.6em;height:1.1em;background:var(--teal);animation:blink 1.1s steps(2) infinite;vertical-align:-.15em}
+@keyframes blink{50%{opacity:0}}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(2.5rem,5.2vw,4.3rem);line-height:1.02;margin-bottom:1.1rem}
+.hl{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%);padding:0 .08em}
+.lead{font-size:1.12rem;color:var(--ink-soft);max-width:34rem;margin-bottom:1.4rem}
+.meta-chips{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1rem}
+.chip{font-family:var(--mono);font-size:.74rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;background:#fff;padding:.3rem .75rem;box-shadow:var(--shadow-sm)}
+.trail{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.6rem;max-width:36rem}
+.trail span{font-family:var(--mono);font-size:.66rem;font-weight:700;border-radius:8px;padding:.22rem .55rem;border:1.5px solid var(--ink)}
+.trail .done{background:#d9f2e6;color:var(--teal-deep)}
+.trail .here{background:var(--amber);color:var(--ink);box-shadow:var(--shadow-sm)}
+.trail .next{background:#fff;color:var(--ink-soft);opacity:.85}
+.cta-row{display:flex;flex-wrap:wrap;gap:.9rem;margin-bottom:1.8rem}
+.btn{display:inline-block;padding:.8rem 1.4rem;border:2px solid var(--ink);border-radius:999px;font-weight:700;text-decoration:none;font-size:.95rem;background:var(--amber);color:var(--ink);box-shadow:4px 4px 0 var(--ink);transition:transform .18s,box-shadow .18s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.ghost{background:#fff}
+.ficha{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:.8rem 1.1rem;font-size:.86rem;box-shadow:var(--shadow-sm)}
+.ficha strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--teal-deep)}
+.ficha .blank{display:inline-block;min-width:9rem;border-bottom:2px dotted var(--ink-soft)}
+
+.stack{position:relative}
+.table-card{background:#fff;border:2px solid var(--ink);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;animation:riseIn .7s .1s both}
+@keyframes riseIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.window-bar{display:flex;align-items:center;gap:.45rem;background:var(--ink);color:#cfe4da;font-family:var(--mono);font-size:.75rem;padding:.5rem .9rem}
+.dot{width:.65rem;height:.65rem;border-radius:50%}
+.dot.r{background:var(--coral)}.dot.a{background:var(--amber)}.dot.v{background:var(--teal)}
+.window-bar .fname{margin-left:.5rem;letter-spacing:.05em}
+.table-card table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.76rem}
+.table-card th{background:var(--teal-deep);color:#fff;text-align:left;padding:.5rem .6rem;font-weight:600}
+.table-card td{padding:.5rem .6rem;border-top:1px dashed var(--line)}
+.table-card tbody tr{animation:rowIn .55s both}
+.table-card tbody tr:nth-child(1){animation-delay:.35s}
+.table-card tbody tr:nth-child(2){animation-delay:.55s}
+.table-card tbody tr:nth-child(3){animation-delay:.75s}
+.table-card tbody tr:nth-child(4){animation-delay:.95s}
+@keyframes rowIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.ok{color:var(--teal);font-weight:700}.no{color:var(--coral);font-weight:700}
+.id-gen{color:var(--amber-deep);font-weight:700}
+.changed{background:rgba(255,182,61,.35)!important}
+.deleted{background:rgba(255,109,90,.25)!important;text-decoration:line-through;opacity:.7}
+.terminal{position:relative;z-index:2;margin:-1.6rem 0 0 2.4rem;background:#10201c;color:#d7ede2;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;animation:riseIn .7s .45s both;width:94%}
+.terminal pre{margin:0;padding:.9rem 1.1rem;font-family:var(--mono);font-size:.74rem;line-height:1.75;overflow-x:auto}
+.p{color:var(--amber);font-weight:700}
+.kw{color:#ffcf7d;font-weight:600}
+.str{color:#8ee6ad}
+.num{color:#7cc7ff}
+.cm{color:#7fa396;font-style:italic}
+.res{color:#9fd6c2}
+.err{color:#ff8f7d}
+.caret{display:inline-block;width:.55em;height:1em;background:#8ee6ad;animation:blink 1s steps(2) infinite;vertical-align:-.12em}
+.float-chip{position:absolute;z-index:3;font-family:var(--mono);font-weight:700;font-size:.8rem;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:.3rem .8rem;box-shadow:var(--shadow-sm);animation:floaty 4.5s ease-in-out infinite alternate}
+.fc1{top:-16px;right:-8px;background:var(--amber);animation-delay:.2s}
+.fc2{top:38%;left:-24px;background:#d9f2e6;animation-delay:1.1s}
+.fc3{bottom:6%;right:-14px;background:#ffd9d3;animation-delay:.6s}
+@keyframes floaty{from{transform:translateY(-5px)}to{transform:translateY(6px)}}
+
+.ticker{overflow:hidden;background:var(--ink);color:#e9f2ec;border-block:3px solid var(--amber);margin-top:2.5rem}
+.ticker-track{display:flex;width:max-content;animation:scrollX 32s linear infinite;padding:.6rem 0;font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;white-space:nowrap}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.tick-set{display:flex;gap:2.2rem;padding-right:2.2rem}
+.tick-set b{color:var(--amber)}
+@keyframes scrollX{to{transform:translateX(-50%)}}
+
+.ruta{padding:3.5rem 0 2.5rem}
+.h2{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,3.4vw,2.4rem);line-height:1.1;margin-bottom:.4rem}
+.sub{color:var(--ink-soft);max-width:44rem;margin-bottom:1.6rem}
+.ruta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1rem}
+.ruta-item{display:flex;gap:1rem;align-items:flex-start;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.1rem 1.2rem;text-decoration:none;color:inherit;box-shadow:var(--shadow-sm);border-left:6px solid var(--teal);transition:transform .2s,box-shadow .2s}
+.ruta-item:nth-child(2){border-left-color:var(--amber)}
+.ruta-item:nth-child(3){border-left-color:var(--coral)}
+.ruta-item:nth-child(4){border-left-color:var(--sky)}
+.ruta-item:nth-child(5){border-left-color:var(--teal-deep)}
+.ruta-item:nth-child(6){border-left-color:var(--amber-deep)}
+.ruta-item:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
+.ruta-num{font-family:var(--display);font-weight:800;font-size:2.6rem;line-height:1;color:rgba(15,127,104,.14);-webkit-text-stroke:1.8px var(--teal);transition:color .25s}
+.ruta-item:hover .ruta-num{color:var(--teal)}
+.ruta-item h3{font-size:1.02rem;margin-bottom:.2rem}
+.ruta-item p{font-size:.86rem;color:var(--ink-soft);margin-bottom:.45rem}
+.mini-time{font-family:var(--mono);font-size:.68rem;font-weight:600;background:var(--paper);border:1.5px solid var(--ink);border-radius:999px;padding:.15rem .55rem}
+
+.unit{padding:3.6rem 0}
+.unit-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:.4rem 1.1rem;border-bottom:3px solid var(--ink);padding-bottom:.8rem;margin-bottom:1.8rem}
+.unit-num{font-family:var(--display);font-weight:800;font-size:clamp(2.6rem,5vw,3.6rem);line-height:1;color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.u2 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber-deep)}
+.u3 .unit-num{color:rgba(255,109,90,.15);-webkit-text-stroke:2.4px var(--coral)}
+.u4 .unit-num{color:rgba(63,127,224,.15);-webkit-text-stroke:2.4px var(--sky)}
+.u5 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber)}
+.u6 .unit-num{color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.unit-time{font-family:var(--mono);font-size:.72rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.25rem .7rem;background:#fff;margin-left:auto}
+.unit h3{font-family:var(--display);font-weight:800;font-size:1.3rem;margin:2.2rem 0 .8rem}
+.unit p{margin-bottom:.9rem;max-width:60rem}
+.unit ul,.unit ol{margin:0 0 1rem 1.4rem}
+.unit li{margin-bottom:.4rem}
+kbd{font-family:var(--mono);background:#fff;border:2px solid var(--ink);border-bottom-width:3px;border-radius:6px;padding:.05rem .5rem;font-size:.82em;font-weight:600}
+
+.note{border-left:6px solid var(--amber);background:#fff8ea;border-radius:0 12px 12px 0;padding:1rem 1.2rem;margin:1.2rem 0;box-shadow:var(--shadow-sm);max-width:60rem}
+.note.tip{border-left-color:var(--teal);background:#eafaf3}
+.note.warn{border-left-color:var(--coral);background:#fff1ee}
+.note.instructor{border-left-color:var(--sky);background:#eef4ff}
+.note .tag{font-family:var(--mono);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:.3rem;color:var(--amber-deep)}
+.note.tip .tag{color:var(--teal-deep)}.note.warn .tag{color:#c2402f}.note.instructor .tag{color:var(--sky)}
+.def-big{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.45;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.4rem 1.6rem;box-shadow:var(--shadow);margin:1.4rem 0;max-width:56rem;position:relative}
+.def-big::before{content:"“";position:absolute;top:-1.4rem;left:1rem;font-family:var(--display);font-size:4rem;color:var(--amber);line-height:1}
+.def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%)}
+
+.table-wrap{overflow-x:auto;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);background:#fff;margin:1.2rem 0;max-width:64rem}
+table.data{width:100%;border-collapse:collapse;font-size:.9rem}
+table.data th{background:var(--teal-deep);color:#fff;text-align:left;padding:.6rem .8rem;font-size:.82rem;letter-spacing:.03em;white-space:nowrap}
+table.data td{padding:.55rem .8rem;border-top:1px solid var(--line);vertical-align:top}
+table.data tbody tr:nth-child(even) td{background:#f6faf6}
+table.data tbody tr:hover td{background:#eef7f0}
+table.data.small{font-size:.82rem}
+table.data.small td,table.data.small th{padding:.45rem .7rem}
+.mono{font-family:var(--mono);font-size:.84em}
+.pk,.fk{font-family:var(--mono);font-size:.62rem;font-weight:700;border-radius:6px;padding:.1rem .4rem;border:1.5px solid var(--ink)}
+.pk{background:var(--amber);color:#3a2b00}
+.fk{background:var(--coral);color:#fff}
+
+.step{display:flex;gap:1rem;margin:1.5rem 0;max-width:64rem;align-items:flex-start}
+.step-num{flex:none;width:2.6rem;height:2.6rem;border-radius:50%;background:var(--amber);border:2px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;box-shadow:var(--shadow-sm)}
+.step-body{min-width:0}
+.step-body h4{font-family:var(--display);font-size:1.05rem;margin-bottom:.3rem}
+.step-body p{margin-bottom:.5rem}
+
+.msg{font-family:var(--mono);font-size:.8rem;background:#eef4ff;border:2px solid var(--sky);border-radius:10px;padding:.6rem .95rem;margin:.8rem 0;max-width:64rem;color:#173d75}
+.msg::before{content:"💬 Mensaje: ";font-weight:700}
+.msg.ok{background:#eafaf3;border-color:var(--teal);color:var(--teal-deep)}
+.msg.err{background:#fff1ee;border-color:var(--coral);color:#8a2c1e}
+.msg.err::before{content:"⚠️ Error: "}
+.msg.warn{background:#fff8ea;border-color:var(--amber);color:var(--amber-deep)}
+.msg.warn::before{content:"🚨 Peligro: "}
+
+.qa{border:2px solid var(--ink);border-radius:12px;background:#fff;margin:1rem 0;box-shadow:var(--shadow-sm);max-width:64rem}
+.qa summary{cursor:pointer;padding:.8rem 1.1rem;font-weight:700;display:flex;align-items:center;gap:.6rem;list-style:none}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::before{content:"▸";color:var(--teal);font-size:1.1rem;transition:transform .25s}
+.qa[open] summary::before{transform:rotate(90deg)}
+.qa summary:hover{background:#f4faf6}
+.qa>div{padding:.2rem 1.1rem 1.1rem 2.3rem;border-top:2px dashed var(--line)}
+.qa.sol summary::before{color:var(--amber-deep)}
+
+.code{background:#0f2320;color:#dcefe6;border:2px solid var(--ink);border-radius:12px;overflow:hidden;margin:1.2rem 0;box-shadow:var(--shadow);max-width:64rem}
+.code-bar{display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:#0a1a17;border-bottom:1px solid #1e3a34;font-family:var(--mono);font-size:.72rem;color:#9db8ae}
+.code pre{margin:0;padding:1rem 1.2rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;line-height:1.7}
+
+.dark{background:var(--ink);color:#e9f2ec}
+.dark .unit-head{border-bottom-color:var(--amber)}
+.dark .unit-time{background:#16352e;color:#ffd98a;border-color:#ffd98a}
+.dark p{color:#cfe2d9}
+.dark h3{color:#ffe1a8}
+.dark .step h4{color:#ffe1a8}
+.dark .note{background:#16352e;border-left-color:var(--amber);color:#e9f2ec}
+.dark .note .tag{color:var(--amber)}
+.dark table.data{color:var(--ink)}
+.dark .table-wrap{color:var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.45);border-color:#3a5a52}
+.dark .qa{background:#16352e;border-color:#3a5a52;color:#e9f2ec}
+.dark .qa summary:hover{background:#1d4038}
+.dark .qa>div{border-top-color:#3a5a52;color:#cfe2d9}
+.dark .msg{background:#16352e;border-color:#3a5a52;color:#cfe2d9}
+.dark .def-big{background:#16352e;color:#e9f2ec;border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+.dark .def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.55) 60%)}
+.dark .code{border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+
+.act{border:2px solid var(--ink);border-radius:16px;background:#fff;box-shadow:var(--shadow);margin:1.8rem 0;overflow:hidden}
+.act-head{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem;padding:.9rem 1.3rem;background:var(--paper);border-bottom:2px solid var(--ink)}
+.act-num{font-family:var(--display);font-weight:800;font-size:1.25rem;background:var(--amber);border:2px solid var(--ink);border-radius:10px;padding:.12rem .65rem}
+.act.a2 .act-num{background:#ffd9d3}.act.a3 .act-num{background:#d9e9ff}
+.act.a4 .act-num{background:#ffe9c4}
+.act-head h3{font-family:var(--display);font-size:1.15rem;margin:0}
+.act-head .mini-time{margin-left:auto}
+.act-body{padding:1.3rem 1.4rem}
+.act-body>p{max-width:56rem}
+.answer{border:2px dashed var(--teal);border-radius:12px;padding:1rem 1.2rem;min-height:96px;margin:1rem 0;background:repeating-linear-gradient(transparent 0 27px, rgba(15,127,104,.14) 27px 28px);color:var(--ink-soft);font-style:italic;font-size:.92rem}
+ul.tick{list-style:none;margin:.8rem 0}
+ul.tick li{position:relative;padding-left:2.1rem;margin:.55rem 0}
+ul.tick li::before{content:"";position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;border:2px solid var(--ink);border-radius:4px;background:#fff}
+.rubric td:first-child{font-weight:700}
+.score-note{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1rem}
+.score-note span{font-size:.85rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.35rem .85rem;background:#fff}
+.score-note .s1{background:#d9f2e6}.score-note .s2{background:#fff3d9}.score-note .s3{background:#ffd9d3}
+
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.9rem;margin-top:1rem}
+.term{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:.9rem 1.1rem;box-shadow:var(--shadow-sm);transition:transform .2s}
+.term:hover{transform:translateY(-3px)}
+.term dt{font-family:var(--mono);font-weight:700;font-size:.9rem;margin-bottom:.25rem}
+.term dt::before{content:"▣ ";color:var(--teal)}
+.term dd{font-size:.86rem;color:var(--ink-soft)}
+
+footer{background:var(--ink);color:#cfe2d9;margin-top:4rem;border-top:4px solid var(--amber)}
+footer .wrap{padding-top:2.5rem;padding-bottom:2.5rem;display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-start}
+footer .foot-brand{font-family:var(--display);font-weight:800;font-size:1.3rem;color:#fff}
+footer small{display:block;margin-top:.4rem;font-family:var(--mono);font-size:.72rem;color:#9fc3b6;max-width:34rem;line-height:1.7}
+footer .top-link{align-self:center}
+footer .top-link a{color:#ffd98a;text-decoration:none;font-family:var(--mono);font-size:.85rem;border:2px solid #ffd98a;border-radius:999px;padding:.5rem 1.1rem;transition:background .2s}
+footer .top-link a:hover{background:rgba(255,217,138,.15)}
+
+@media (max-width:940px){
+  .hero-grid{grid-template-columns:1fr;gap:2.5rem}
+  .terminal{margin:1.2rem 0 0}
+  .topbar nav{margin-left:0;width:100%;overflow-x:auto}
+}
+@media print{
+  .topbar,.ticker,.cta-row,.float-chip,.top-link{display:none!important}
+  body{background:#fff}
+  .table-card,.terminal,.code,.act,.qa{box-shadow:none;break-inside:avoid}
+  .unit,.hero{padding:1.2rem 0}
+  .terminal pre,.code pre{white-space:pre-wrap}
+  a{color:inherit;text-decoration:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="topbar">
+  <a class="brand" href="#inicio"><span class="brand-badge">BD·107</span> El ciclo CRUD <small>· SQL Server</small></a>
+  <nav aria-label="Secciones del tutorial">
+    <a href="#crud">El ciclo CRUD</a>
+    <a href="#insert">INSERT</a>
+    <a href="#update">UPDATE</a>
+    <a href="#delete">DELETE</a>
+    <a href="#orden">Orden con FK</a>
+    <a href="#trans">Transacciones</a>
+    <a href="#taller">Taller</a>
+    <a href="#chuleta">Chuleta</a>
+  </nav>
+</header>
+
+<main id="contenido">
+
+<!-- ═══════════ PORTADA ═══════════ -->
+<section id="inicio" class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker"><span class="blink"></span> Fase 3 · Poblar y modificar (DML) · Motor: SQL Server</p>
+      <h1>Los datos cobran vida.<br><span class="hl">Y tú decides cómo.</span></h1>
+      <p class="lead">La estructura ya está construida. Hoy aprenderás a <strong>llenarla, corregirla y limpiarla</strong>: INSERT para crear, UPDATE para modificar y DELETE para eliminar. Y lo más importante: <strong>el orden correcto con FK</strong> y cómo evitar los errores que destruyen datos.</p>
+      <div class="meta-chips">
+        <span class="chip">⏱ ≈ 3 sesiones</span>
+        <span class="chip">🗄️ Motor: SQL Server</span>
+        <span class="chip">🔧 Tema: DML (INSERT, UPDATE, DELETE)</span>
+        <span class="chip">📄 Imprimible</span>
+      </div>
+      <div class="trail" aria-label="Progreso del curso">
+        <span class="done">BD·101 ✔ Conceptos</span>
+        <span class="done">BD·102 ✔ Normalización</span>
+        <span class="done">BD·103 ✔ Primera base</span>
+        <span class="done">BD·104 ✔ Integridad</span>
+        <span class="done">BD·105 ✔ Dos tablas</span>
+        <span class="done">BD·106 ✔ N tablas</span>
+        <span class="here">BD·107 ● Estás aquí</span>
+        <span class="next">BD·108 SELECT…</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn" href="#crud">Empezar: el ciclo CRUD ↓</a>
+        <a class="btn ghost" href="#taller">Ir directo al taller</a>
+      </div>
+      <div class="ficha">
+        <strong>Ficha / Grupo:</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Instructor(a):</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Servidor SQL:</strong> <span class="blank">&nbsp;</span>
+      </div>
+    </div>
+
+    <div class="stack">
+      <span class="float-chip fc1">INSERT</span>
+      <span class="float-chip fc2">UPDATE</span>
+      <span class="float-chip fc3">DELETE</span>
+      <div class="table-card">
+        <div class="window-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span><span class="fname">tienda_db · dbo.productos</span></div>
+        <table>
+          <thead><tr><th>id</th><th>nombre</th><th>precio</th><th>cantidad</th><th>activo</th></tr></thead>
+          <tbody>
+            <tr><td class="id-gen">1 ⚙</td><td>Gaseosa 400 ml</td><td class="changed">3800.00 ✏️</td><td>48</td><td class="ok">1 ✔</td></tr>
+            <tr><td class="id-gen">2 ⚙</td><td>Empanada</td><td>2500.00</td><td class="changed">25 ✏️</td><td class="ok">1 ✔</td></tr>
+            <tr class="deleted"><td class="id-gen">3 ⚙</td><td>Café</td><td>1800.00</td><td>0</td><td class="no">0 ✘</td></tr>
+            <tr><td class="id-gen">4 ⚙</td><td class="ok">Jugo de mango ✚</td><td class="ok">3000.00 ✚</td><td class="ok">22 ✚</td><td class="ok">1 ✔</td></tr>
+          </tbody>
+        </table>
+        <div class="window-bar" style="border-top:2px solid var(--coral)">✚ INSERT · ✏️ UPDATE · línea tachada = DELETE</div>
+      </div>
+      <div class="terminal">
+        <div class="window-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span><span class="fname">SSMS · ciclo_crud.sql</span></div>
+        <pre><span class="p">1&gt;</span> <span class="kw">UPDATE</span> productos <span class="kw">SET</span> precio = <span class="num">3800</span> <span class="kw">WHERE</span> id = <span class="num">1</span>;
+<span class="res">(1 row affected) ✔</span>
+<span class="p">2&gt;</span> <span class="kw">DELETE FROM</span> productos <span class="kw">WHERE</span> id = <span class="num">3</span>;
+<span class="res">(1 row affected) ✔</span>
+<span class="p">3&gt;</span> <span class="caret"></span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <div class="tick-set">
+        <span><b>C</b>reate = INSERT</span><span><b>R</b>ead = SELECT</span><span><b>U</b>pdate = UPDATE</span><span><b>D</b>elete = DELETE</span><span>siempre escribe el WHERE</span><span>sin WHERE, UPDATE afecta TODO</span><span>DELETE sin WHERE vacía la tabla</span><span>padre primero en INSERT</span><span>hijo primero en DELETE</span><span>BEGIN TRAN te da un botón de deshacer</span><span>TRUNCATE reinicia el IDENTITY</span>
+      </div>
+      <div class="tick-set">
+        <span><b>C</b>reate = INSERT</span><span><b>R</b>ead = SELECT</span><span><b>U</b>pdate = UPDATE</span><span><b>D</b>elete = DELETE</span><span>siempre escribe el WHERE</span><span>sin WHERE, UPDATE afecta TODO</span><span>DELETE sin WHERE vacía la tabla</span><span>padre primero en INSERT</span><span>hijo primero en DELETE</span><span>BEGIN TRAN te da un botón de deshacer</span><span>TRUNCATE reinicia el IDENTITY</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ HOJA DE RUTA ═══════════ -->
+<section class="ruta">
+  <div class="wrap">
+    <h2 class="h2">Hoja de ruta de esta entrega</h2>
+    <p class="sub">En BD·103 a BD·106 construiste la estructura (DDL). Ahora vas a <strong>manipular los datos</strong> dentro de esa estructura (DML). Cada operación tiene su sintaxis, sus reglas con FK y sus errores clásicos que hay que aprender a evitar.</p>
+    <div class="ruta-grid">
+      <a class="ruta-item" href="#crud"><span class="ruta-num">01</span><div><h3>El ciclo CRUD</h3><p>Qué es, por qué se llama así y el orden correcto con FK.</p><span class="mini-time">⏱ 15 min</span></div></a>
+      <a class="ruta-item" href="#insert"><span class="ruta-num">02</span><div><h3>INSERT</h3><p>Simple, múltiple, con DEFAULT y NULL, y con SELECT.</p><span class="mini-time">⏱ 25 min</span></div></a>
+      <a class="ruta-item" href="#update"><span class="ruta-num">03</span><div><h3>UPDATE</h3><p>Con WHERE siempre. Y el desastre que pasa sin WHERE.</p><span class="mini-time">⏱ 25 min</span></div></a>
+      <a class="ruta-item" href="#delete"><span class="ruta-num">04</span><div><h3>DELETE y TRUNCATE</h3><p>Borrar filas específicas o vaciar la tabla completa.</p><span class="mini-time">⏱ 20 min</span></div></a>
+      <a class="ruta-item" href="#orden"><span class="ruta-num">05</span><div><h3>El orden con FK</h3><p>Por qué INSERT va padre→hijo y DELETE va hijo→padre.</p><span class="mini-time">⏱ 15 min</span></div></a>
+      <a class="ruta-item" href="#taller"><span class="ruta-num">06</span><div><h3>Taller paso a paso</h3><p>Ciclo CRUD completo en la tienda escolar.</p><span class="mini-time">⏱ 90 min</span></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 01 · EL CICLO CRUD ═══════════ -->
+<section id="crud" class="unit u1">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">01</span>
+      <h2 class="h2">El ciclo CRUD: las cuatro operaciones fundamentales</h2>
+      <span class="unit-time">⏱ 15 min de lectura</span>
+    </div>
+
+    <div class="def-big"><strong>CRUD</strong> es el acrónimo de las cuatro operaciones básicas que puedes hacer con los datos: <strong>C</strong>reate (crear), <strong>R</strong>ead (leer), <strong>U</strong>pdate (actualizar) y <strong>D</strong>elete (borrar). Todo sistema de información, desde una tienda escolar hasta un banco, se basa en estas cuatro operaciones.</div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Operación</th><th>Comando SQL</th><th>Qué hace</th></tr></thead>
+        <tbody>
+          <tr><td><strong>C</strong>reate</td><td class="mono">INSERT</td><td>Agrega nuevas filas a una tabla.</td></tr>
+          <tr><td><strong>R</strong>ead</td><td class="mono">SELECT</td><td>Lee y consulta los datos (lo verás a fondo en BD·108).</td></tr>
+          <tr><td><strong>U</strong>pdate</td><td class="mono">UPDATE</td><td>Modifica filas existentes.</td></tr>
+          <tr><td><strong>D</strong>elete</td><td class="mono">DELETE</td><td>Elimina filas existentes.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>La regla de oro del orden con FK</h3>
+    <p>Cuando tienes tablas relacionadas, el orden de las operaciones no es opcional:</p>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Operación</th><th>Orden correcto</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td><strong>INSERT</strong></td><td>Primero el padre, después el hijo.</td><td>El hijo necesita que el padre exista para poder apuntar a su PK.</td></tr>
+          <tr><td><strong>DELETE</strong></td><td>Primero el hijo, después el padre.</td><td>No puedes borrar al padre mientras los hijos lo referencien (a menos que uses CASCADE).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note tip"><span class="tag">💡 Analogía</span>Piensa en construir y demoler una casa: primero pones los cimientos y luego las paredes (INSERT: padre → hijo). Para demoler, primero quitas las paredes y luego los cimientos (DELETE: hijo → padre). Si lo haces al revés, todo se derrumba.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 02 · INSERT ═══════════ -->
+<section id="insert" class="unit u2">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">02</span>
+      <h2 class="h2">INSERT: crear nuevos datos</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <h3>INSERT simple: una fila a la vez</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; insert_simple.sql</div>
+      <pre><span class="cm">-- Insertar una categoría (tabla padre)</span>
+<span class="kw">INSERT INTO</span> categorias (nombre)
+<span class="kw">VALUES</span> (<span class="str">'Bebidas'</span>);
+
+<span class="cm">-- Insertar un producto (tabla hijo) apuntando a la categoría existente</span>
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Gaseosa 400 ml'</span>, <span class="num">1</span>, <span class="num">3500</span>, <span class="num">48</span>);</pre>
+    </div>
+    <div class="msg ok">(1 row affected)</div>
+
+    <h3>INSERT múltiple: varias filas en una sola instrucción</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; insert_multiple.sql</div>
+      <pre><span class="kw">INSERT INTO</span> categorias (nombre)
+<span class="kw">VALUES</span> (<span class="str">'Fritos'</span>),
+       (<span class="str">'Snacks'</span>),
+       (<span class="str">'Dulces'</span>);</pre>
+    </div>
+    <div class="msg ok">(3 rows affected)</div>
+
+    <h3>INSERT omitiendo columnas con DEFAULT</h3>
+    <p>Si una columna tiene DEFAULT, no necesitas incluirla. SQL Server pone el valor automáticamente:</p>
+    <div class="code"><pre><span class="cm">-- La columna activo tiene DEFAULT 1, así que la omitimos</span>
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Empanada'</span>, <span class="num">2</span>, <span class="num">2500</span>, <span class="num">30</span>);
+<span class="cm">-- activo queda en 1 automáticamente ✔</span></pre>
+    </div>
+
+    <h3>INSERT con NULL explícito</h3>
+    <p>Si una columna admite NULL y quieres dejarla vacía a propósito:</p>
+    <div class="code"><pre><span class="cm">-- Supongamos que categorias tiene una columna descripcion que admite NULL</span>
+<span class="kw">INSERT INTO</span> categorias (nombre, descripcion)
+<span class="kw">VALUES</span> (<span class="str">'Bebidas'</span>, <span class="num">NULL</span>);</pre>
+    </div>
+    <div class="note tip"><span class="tag">💡 IDENTITY no se inserta</span>Nunca incluyas la columna IDENTITY en el INSERT. SQL Server la genera sola. Si lo intentas, obtendrás un error.</div>
+
+    <h3>INSERT con SELECT: copiar datos de otra tabla</h3>
+    <div class="code"><pre><span class="cm">-- Copiar todos los productos activos a una tabla de respaldo</span>
+<span class="kw">INSERT INTO</span> productos_respaldo (nombre, categoria_id, precio, cantidad)
+<span class="kw">SELECT</span> nombre, categoria_id, precio, cantidad
+<span class="kw">FROM</span> productos
+<span class="kw">WHERE</span> activo = <span class="num">1</span>;</pre>
+    </div>
+    <div class="note"><span class="tag">🤓 ¿Cuándo se usa esto?</span>Para respaldos, migraciones o para llenar una tabla de resumen con datos ya existentes. Es una herramienta poderosa en la vida real.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 03 · UPDATE ═══════════ -->
+<section id="update" class="unit u3">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">03</span>
+      <h2 class="h2">UPDATE: modificar datos existentes</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <h3>La sintaxis correcta: siempre con WHERE</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; update_con_where.sql</div>
+      <pre><span class="cm">-- Subir el precio de la Gaseosa (id = 1)</span>
+<span class="kw">UPDATE</span> productos
+<span class="kw">SET</span> precio = <span class="num">3800</span>
+<span class="kw">WHERE</span> id = <span class="num">1</span>;</pre>
+    </div>
+    <div class="msg ok">(1 row affected)</div>
+
+    <h3>UPDATE con expresiones</h3>
+    <div class="code"><pre><span class="cm">-- Aumentar todos los precios en un 10%</span>
+<span class="kw">UPDATE</span> productos
+<span class="kw">SET</span> precio = precio * <span class="num">1.10</span>
+<span class="kw">WHERE</span> categoria_id = <span class="num">1</span>;</pre>
+    </div>
+
+    <h3>UPDATE con múltiples columnas</h3>
+    <div class="code"><pre><span class="cm">-- Actualizar precio y cantidad al mismo tiempo</span>
+<span class="kw">UPDATE</span> productos
+<span class="kw">SET</span> precio = <span class="num">2700</span>,
+    cantidad = <span class="num">35</span>
+<span class="kw">WHERE</span> nombre = <span class="str">'Empanada'</span>;</pre>
+    </div>
+
+    <h3>⚠️ El desastre clásico: UPDATE sin WHERE</h3>
+    <p>¿Qué pasa si olvidas el WHERE?</p>
+    <div class="code"><pre><span class="cm">-- ⚠️ PELIGRO: esto afecta TODAS las filas</span>
+<span class="kw">UPDATE</span> productos
+<span class="kw">SET</span> precio = <span class="num">0</span>;</pre>
+    </div>
+    <div class="msg warn">(N rows affected) — ¡Todas las filas fueron actualizadas!</div>
+    <p>Acabas de poner <strong>todos los productos a precio cero</strong>. No hay error de sintaxis: SQL Server ejecuta exactamente lo que le pediste. El problema es que le pediste algo que no querías.</p>
+
+    <div class="note warn"><span class="tag">🚨 Regla de supervivencia</span><strong>Antes de ejecutar un UPDATE, escribe primero el SELECT equivalente</strong> para ver exactamente qué filas se verán afectadas:
+    <div class="code" style="margin:.5rem 0 0"><pre><span class="cm">-- Paso 1: verificar qué filas se modificarán</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> id = <span class="num">1</span>;
+
+<span class="cm">-- Paso 2: si el resultado es correcto, ejecuta el UPDATE</span>
+<span class="kw">UPDATE</span> productos <span class="kw">SET</span> precio = <span class="num">3800</span> <span class="kw">WHERE</span> id = <span class="num">1</span>;</pre></div>
+    Esta costumbre te salvará de muchos desastres en la vida real.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 04 · DELETE Y TRUNCATE ═══════════ -->
+<section id="delete" class="unit u4">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">04</span>
+      <h2 class="h2">DELETE y TRUNCATE: eliminar datos</h2>
+      <span class="unit-time">⏱ 20 min práctica</span>
+    </div>
+
+    <h3>DELETE con WHERE: borrar filas específicas</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; delete_con_where.sql</div>
+      <pre><span class="cm">-- Borrar el producto con id = 3</span>
+<span class="kw">DELETE FROM</span> productos
+<span class="kw">WHERE</span> id = <span class="num">3</span>;</pre>
+    </div>
+    <div class="msg ok">(1 row affected)</div>
+
+    <h3>⚠️ DELETE sin WHERE: vaciar la tabla</h3>
+    <div class="code"><pre><span class="cm">-- ⚠️ PELIGRO: borra TODAS las filas</span>
+<span class="kw">DELETE FROM</span> productos;</pre>
+    </div>
+    <div class="msg warn">(N rows affected) — La tabla quedó vacía.</div>
+    <p>La estructura de la tabla sigue existiendo, pero no tiene datos. Y el contador IDENTITY <strong>no se reinicia</strong>: el próximo id seguirá desde donde quedó.</p>
+
+    <h3>TRUNCATE TABLE: vaciar y reiniciar</h3>
+    <div class="code"><pre><span class="cm">-- Vaciar la tabla y reiniciar el IDENTITY a 1</span>
+<span class="kw">TRUNCATE TABLE</span> productos;</pre>
+    </div>
+    <div class="table-wrap">
+      <table class="data small">
+        <thead><tr><th>Característica</th><th class="mono">DELETE FROM tabla</th><th class="mono">TRUNCATE TABLE tabla</th></tr></thead>
+        <tbody>
+          <tr><td>¿Se puede filtrar con WHERE?</td><td>Sí</td><td>No (borra todo)</td></tr>
+          <tr><td>¿Reinicia el IDENTITY?</td><td>No</td><td>Sí (vuelve a 1)</td></tr>
+          <tr><td>¿Respeta las FK?</td><td>Sí (puede fallar si hay hijos)</td><td>No (falla si hay FK apuntando a esta tabla)</td></tr>
+          <tr><td>¿Es más rápido?</td><td>Más lento (fila por fila)</td><td>Más rápido (operación interna)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note warn"><span class="tag">🚨 Regla de supervivencia (otra vez)</span><strong>Antes de ejecutar un DELETE, escribe primero el SELECT equivalente</strong> para verificar qué filas se borrarán. La misma regla que con UPDATE.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 05 · ORDEN CON FK ═══════════ -->
+<section id="orden" class="unit u5">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">05</span>
+      <h2 class="h2">El orden con FK: INSERT padre→hijo, DELETE hijo→padre</h2>
+      <span class="unit-time">⏱ 15 min práctica</span>
+    </div>
+
+    <h3>INSERT: primero el padre</h3>
+    <p>Intentemos insertar un producto antes de que exista su categoría:</p>
+    <div class="code"><pre><span class="cm">-- ⚠️ La categoría 999 no existe</span>
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Producto fantasma'</span>, <span class="num">999</span>, <span class="num">1000</span>, <span class="num">5</span>);</pre>
+    </div>
+    <div class="msg err">Msg 547 — The INSERT statement conflicted with the FOREIGN KEY constraint "FK_productos_categoria".</div>
+    <p>La solución correcta: insertar primero la categoría, y luego el producto.</p>
+    <div class="code"><pre><span class="cm">-- ✔ Orden correcto</span>
+<span class="kw">INSERT INTO</span> categorias (nombre) <span class="kw">VALUES</span> (<span class="str">'Bebidas'</span>);   <span class="cm">-- id = 1</span>
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Gaseosa'</span>, <span class="num">1</span>, <span class="num">3500</span>, <span class="num">48</span>);</pre>
+    </div>
+
+    <h3>DELETE: primero el hijo</h3>
+    <p>Intentemos borrar una categoría que tiene productos asociados:</p>
+    <div class="code"><pre><span class="cm">-- ⚠️ Hay productos que apuntan a esta categoría</span>
+<span class="kw">DELETE FROM</span> categorias <span class="kw">WHERE</span> id = <span class="num">1</span>;</pre>
+    </div>
+    <div class="msg err">Msg 547 — The DELETE statement conflicted with the REFERENCE constraint "FK_productos_categoria".</div>
+    <p>La solución correcta: borrar primero los productos hijos, y luego la categoría.</p>
+    <div class="code"><pre><span class="cm">-- ✔ Orden correcto</span>
+<span class="kw">DELETE FROM</span> productos <span class="kw">WHERE</span> categoria_id = <span class="num">1</span>;   <span class="cm">-- borrar hijos</span>
+<span class="kw">DELETE FROM</span> categorias <span class="kw">WHERE</span> id = <span class="num">1</span>;            <span class="cm">-- borrar padre</span></pre>
+    </div>
+    <div class="note tip"><span class="tag">💡 La alternativa: CASCADE</span>Si definiste la FK con <span class="mono">ON DELETE CASCADE</span>, SQL Server borra automáticamente los hijos cuando borras el padre. Es más cómodo, pero también más peligroso: asegúrate de que realmente quieres ese comportamiento.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 06 · TRANSACCIONES (OSCURA) ═══════════ -->
+<section id="trans" class="unit u6 dark">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">06</span>
+      <h2 class="h2">Transacciones: el botón de deshacer de SQL Server</h2>
+      <span class="unit-time">⏱ 20 min práctica</span>
+    </div>
+
+    <p>¿Qué pasa si estás haciendo varios cambios y a mitad de camino algo sale mal? Una <strong>transacción</strong> agrupa varias instrucciones DML en una sola unidad: o se ejecutan todas, o no se ejecuta ninguna.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; transaccion.sql</div>
+      <pre><span class="cm">-- Iniciar la transacción</span>
+<span class="kw">BEGIN TRAN</span>;
+
+<span class="cm">-- Operación 1: insertar un pedido</span>
+<span class="kw">INSERT INTO</span> pedidos (cliente_id, total)
+<span class="kw">VALUES</span> (<span class="num">1</span>, <span class="num">5500</span>);
+
+<span class="cm">-- Operación 2: insertar el detalle</span>
+<span class="kw">INSERT INTO</span> detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
+<span class="kw">VALUES</span> (<span class="num">1</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">3500</span>);
+
+<span class="cm">-- Si todo salió bien, confirmar los cambios</span>
+<span class="kw">COMMIT</span>;
+
+<span class="cm">-- Si algo salió mal, deshacer todo</span>
+<span class="cm">-- ROLLBACK;</span></pre>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Comando</th><th>Qué hace</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">BEGIN TRAN</td><td>Inicia la transacción. A partir de aquí, los cambios son provisionales.</td></tr>
+          <tr><td class="mono">COMMIT</td><td>Confirma todos los cambios. Ya no se pueden deshacer.</td></tr>
+          <tr><td class="mono">ROLLBACK</td><td>Deshace todos los cambios desde el BEGIN TRAN. Como si nunca hubieran ocurrido.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note"><span class="tag">🤓 ¿Cuándo se usa esto?</span>En operaciones que involucran varias tablas y que deben ser atómicas: o se completan todas, o no se completa ninguna. El ejemplo clásico: una transferencia bancaria (restar de una cuenta y sumar en otra). Si falla la segunda operación, hay que deshacer la primera. En este curso lo usaremos de forma introductoria; lo dominarás en un curso más avanzado.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 07 · TALLER ═══════════ -->
+<section id="taller" class="unit u7">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">07</span>
+      <h2 class="h2">Taller paso a paso</h2>
+      <span class="unit-time">⏱ 90 min · laboratorio</span>
+    </div>
+    <p>Cuatro ejercicios: clasificar operaciones, practicar INSERT, practicar UPDATE y DELETE, y un reto integrador que simula un día completo de operaciones en la tienda escolar.</p>
+    <div class="note instructor"><span class="tag">👩‍🏫 Nota para el instructor(a)</span>Sugerencia de 3 sesiones — <strong>S1:</strong> Unidades 01–02 + E1 y E2 · <strong>S2:</strong> Unidades 03–05 + E3 · <strong>S3:</strong> Unidad 06 + E4 (reto integrador) con socialización.</div>
+
+    <!-- E1 -->
+    <article class="act a1">
+      <div class="act-head"><span class="act-num">E1</span><h3>Clasifica la operación · en papel</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Para cada situación, indica qué operación CRUD corresponde y qué comando SQL usarías:</p>
+        <div class="table-wrap">
+          <table class="data small">
+            <thead><tr><th>Situación</th><th style="width:20%">Operación CRUD</th><th style="width:22%">Comando SQL</th></tr></thead>
+            <tbody>
+              <tr><td>Un cliente nuevo se registra en la tienda.</td><td>_____________</td><td>_____________</td></tr>
+              <tr><td>El precio de la Gaseosa sube de 3500 a 3800.</td><td>_____________</td><td>_____________</td></tr>
+              <tr><td>Se agotaron las Empanadas y hay que eliminarlas del catálogo.</td><td>_____________</td><td>_____________</td></tr>
+              <tr><td>El gerente quiere ver todos los productos de la categoría Bebidas.</td><td>_____________</td><td>_____________</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><p>① Create / INSERT · ② Update / UPDATE · ③ Delete / DELETE · ④ Read / SELECT.</p></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E2 -->
+    <article class="act a2">
+      <div class="act-head"><span class="act-num">E2</span><h3>INSERT en la tienda escolar · en el computador</h3><span class="mini-time">⏱ 20 min · individual</span></div>
+      <div class="act-body">
+        <p>Suponiendo que ya tienes las tablas <span class="mono">categorias</span> y <span class="mono">productos</span> creadas en BD·105, realiza las siguientes inserciones en el orden correcto:</p>
+        <ul class="tick">
+          <li>Inserta 3 categorías: Bebidas, Fritos y Snacks.</li>
+          <li>Inserta 5 productos: 2 de Bebidas, 2 de Fritos y 1 de Snacks.</li>
+          <li>Inserta un producto omitiendo la columna activo (debe quedar en 1 por DEFAULT).</li>
+          <li>Verifica con un SELECT que todos los datos estén correctos.</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tu script y capturas.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div>
+            <div class="code"><pre><span class="cm">-- Primero las categorías (padre)</span>
+<span class="kw">INSERT INTO</span> categorias (nombre)
+<span class="kw">VALUES</span> (<span class="str">'Bebidas'</span>), (<span class="str">'Fritos'</span>), (<span class="str">'Snacks'</span>);
+
+<span class="cm">-- Luego los productos (hijo)</span>
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Gaseosa 400 ml'</span>, <span class="num">1</span>, <span class="num">3500</span>, <span class="num">48</span>);
+
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Café'</span>, <span class="num">1</span>, <span class="num">1800</span>, <span class="num">0</span>);
+
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Empanada'</span>, <span class="num">2</span>, <span class="num">2500</span>, <span class="num">30</span>);
+
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Arepas'</span>, <span class="num">2</span>, <span class="num">2000</span>, <span class="num">15</span>);
+
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Papas fritas'</span>, <span class="num">3</span>, <span class="num">4000</span>, <span class="num">25</span>);
+
+<span class="cm">-- Verificar</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> categorias;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos;</pre></div>
+          </div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E3 -->
+    <article class="act a3">
+      <div class="act-head"><span class="act-num">E3</span><h3>UPDATE y DELETE seguros · parejas</h3><span class="mini-time">⏱ 25 min</span></div>
+      <div class="act-body">
+        <p>Con los datos insertados en E2, realiza las siguientes modificaciones. <strong>Para cada una, escribe primero el SELECT de verificación</strong> antes de ejecutar el UPDATE o DELETE:</p>
+        <ul class="tick">
+          <li>Sube el precio de la Gaseosa de 3500 a 3800.</li>
+          <li>Aumenta en un 10% el precio de todos los productos de la categoría Fritos.</li>
+          <li>Actualiza la cantidad de Empanadas de 30 a 25.</li>
+          <li>Borra el producto Café (cantidad = 0).</li>
+          <li>Intenta borrar la categoría Bebidas (debe fallar si hay productos asociados).</li>
+        </ul>
+        <div class="answer">✏️ Espacio para tu script, con los SELECT de verificación incluidos.</div>
+        <details class="qa"><summary>💡 Pista</summary><div><p>El último DELETE debe fallar con Msg 547 porque hay productos que apuntan a esa categoría. Para borrarla, primero borra los productos hijos.</p></div></details>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div>
+            <div class="code"><pre><span class="cm">-- 1. Subir precio de la Gaseosa</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> id = <span class="num">1</span>;   <span class="cm">-- verificar</span>
+<span class="kw">UPDATE</span> productos <span class="kw">SET</span> precio = <span class="num">3800</span> <span class="kw">WHERE</span> id = <span class="num">1</span>;
+
+<span class="cm">-- 2. Aumentar 10% los Fritos</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> categoria_id = <span class="num">2</span>;   <span class="cm">-- verificar</span>
+<span class="kw">UPDATE</span> productos <span class="kw">SET</span> precio = precio * <span class="num">1.10</span> <span class="kw">WHERE</span> categoria_id = <span class="num">2</span>;
+
+<span class="cm">-- 3. Actualizar cantidad de Empanadas</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre = <span class="str">'Empanada'</span>;   <span class="cm">-- verificar</span>
+<span class="kw">UPDATE</span> productos <span class="kw">SET</span> cantidad = <span class="num">25</span> <span class="kw">WHERE</span> nombre = <span class="str">'Empanada'</span>;
+
+<span class="cm">-- 4. Borrar el Café</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre = <span class="str">'Café'</span>;   <span class="cm">-- verificar</span>
+<span class="kw">DELETE FROM</span> productos <span class="kw">WHERE</span> nombre = <span class="str">'Café'</span>;
+
+<span class="cm">-- 5. Intentar borrar la categoría Bebidas (fallará)</span>
+<span class="kw">DELETE FROM</span> categorias <span class="kw">WHERE</span> nombre = <span class="str">'Bebidas'</span>;
+<span class="cm">-- Msg 547: hay productos que apuntan a esta categoría</span></pre></div>
+          </div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E4 · RETO -->
+    <article class="act a4">
+      <div class="act-head"><span class="act-num">E4</span><h3>🏆 Reto integrador: un día en la tienda escolar</h3><span class="mini-time">⏱ 35 min · equipos</span></div>
+      <div class="act-body">
+        <p>Simula un día completo de operaciones en la tienda escolar. El sistema ya tiene las tablas <span class="mono">clientes</span>, <span class="mono">categorias</span>, <span class="mono">productos</span>, <span class="mono">pedidos</span> y <span class="mono">detalle_pedido</span> creadas en BD·106. Realiza las siguientes operaciones <strong>en el orden correcto</strong>:</p>
+        <ul class="tick">
+          <li>INSERT: llega un nuevo cliente, Valentina Ruiz.</li>
+          <li>INSERT: Valentina hace un pedido con 2 productos.</li>
+          <li>UPDATE: el precio de la Gaseosa sube de 3500 a 4000.</li>
+          <li>UPDATE: se vendieron 5 Empanadas, así que la cantidad baja de 30 a 25.</li>
+          <li>DELETE: se agotó el Café (cantidad = 0). Borra el producto.</li>
+          <li>INSERT: llega un nuevo producto, Jugo de mango, en la categoría Bebidas.</li>
+          <li>Verifica con SELECT el estado final de todas las tablas.</li>
+        </ul>
+        <div class="answer">✏️ Espacio de borrador del equipo: script completo con todas las operaciones.</div>
+        <details class="qa"><summary>💡 Pista</summary><div><p>Recuerda el orden: INSERT va padre → hijo (cliente antes que pedido, categoría antes que producto). DELETE va hijo → padre (si necesitas borrar una categoría, primero borra sus productos). Y para cada UPDATE o DELETE, escribe primero el SELECT de verificación.</p></div></details>
+        <details class="qa sol"><summary>🔍 Solución completa</summary>
+          <div>
+            <div class="code"><pre><span class="cm">-- ═══════════════════════════════════════════════════</span>
+<span class="cm">-- UN DÍA EN LA TIENDA ESCOLAR</span>
+<span class="cm">-- ═══════════════════════════════════════════════════</span>
+
+<span class="cm">-- 1. INSERT: nuevo cliente</span>
+<span class="kw">INSERT INTO</span> clientes (nombre, telefono)
+<span class="kw">VALUES</span> (<span class="str">'Valentina Ruiz'</span>, <span class="str">'310-111-2222'</span>);   <span class="cm">-- id = 1</span>
+
+<span class="cm">-- 2. INSERT: pedido del cliente 1</span>
+<span class="kw">INSERT INTO</span> pedidos (cliente_id, total)
+<span class="kw">VALUES</span> (<span class="num">1</span>, <span class="num">6000</span>);   <span class="cm">-- id = 1</span>
+
+<span class="cm">-- 3. INSERT: detalle del pedido</span>
+<span class="kw">INSERT INTO</span> detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
+<span class="kw">VALUES</span> (<span class="num">1</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">3500</span>);   <span class="cm">-- Gaseosa</span>
+
+<span class="kw">INSERT INTO</span> detalle_pedido (pedido_id, producto_id, cantidad, precio_unitario)
+<span class="kw">VALUES</span> (<span class="num">1</span>, <span class="num">2</span>, <span class="num">1</span>, <span class="num">2500</span>);   <span class="cm">-- Empanada</span>
+
+<span class="cm">-- 4. UPDATE: subir precio de la Gaseosa</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> id = <span class="num">1</span>;   <span class="cm">-- verificar</span>
+<span class="kw">UPDATE</span> productos <span class="kw">SET</span> precio = <span class="num">4000</span> <span class="kw">WHERE</span> id = <span class="num">1</span>;
+
+<span class="cm">-- 5. UPDATE: restar 5 Empanadas del inventario</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> id = <span class="num">2</span>;   <span class="cm">-- verificar</span>
+<span class="kw">UPDATE</span> productos <span class="kw">SET</span> cantidad = cantidad - <span class="num">5</span> <span class="kw">WHERE</span> id = <span class="num">2</span>;
+
+<span class="cm">-- 6. DELETE: borrar el Café (cantidad = 0)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos <span class="kw">WHERE</span> nombre = <span class="str">'Café'</span>;   <span class="cm">-- verificar</span>
+<span class="kw">DELETE FROM</span> productos <span class="kw">WHERE</span> nombre = <span class="str">'Café'</span>;
+
+<span class="cm">-- 7. INSERT: nuevo producto</span>
+<span class="kw">INSERT INTO</span> productos (nombre, categoria_id, precio, cantidad)
+<span class="kw">VALUES</span> (<span class="str">'Jugo de mango'</span>, <span class="num">1</span>, <span class="num">3000</span>, <span class="num">22</span>);
+
+<span class="cm">-- 8. Verificar el estado final</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> clientes;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> pedidos;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> detalle_pedido;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos;</pre></div>
+            <p>Este ejercicio simula un día real de operaciones. Cada paso respeta el orden correcto con FK y usa el SELECT de verificación antes de UPDATE y DELETE. Así se trabaja en producción.</p>
+          </div>
+        </details>
+
+        <h3 style="font-size:1.05rem;margin-top:1.4rem">Rúbrica del taller</h3>
+        <div class="table-wrap">
+          <table class="data small rubric">
+            <thead><tr><th>Criterio</th><th>En proceso (1–2)</th><th>Logrado (3–4)</th><th>Destacado (5)</th></tr></thead>
+            <tbody>
+              <tr><td>Identifica la operación CRUD correcta</td><td>Confunde UPDATE con DELETE.</td><td>Clasifica correctamente todas las situaciones.</td><td>Explica por qué cada operación es la adecuada.</td></tr>
+              <tr><td>INSERT con orden correcto</td><td>Inserta el hijo antes que el padre.</td><td>Inserta en el orden correcto.</td><td>Además usa INSERT múltiple y omite columnas con DEFAULT.</td></tr>
+              <tr><td>UPDATE con WHERE y verificación</td><td>Ejecuta UPDATE sin SELECT previo.</td><td>Escribe el SELECT de verificación antes del UPDATE.</td><td>Además usa expresiones (precio * 1.10) y actualiza múltiples columnas.</td></tr>
+              <tr><td>DELETE con orden correcto</td><td>Intenta borrar el padre antes que el hijo.</td><td>Borra en el orden correcto.</td><td>Explica la diferencia entre DELETE y TRUNCATE.</td></tr>
+              <tr><td>Reto integrador</td><td>No completa todas las operaciones.</td><td>Completa el ciclo CRUD completo en orden.</td><td>Presenta el script comentado y explica cada decisión.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- AUTOEVALUACIÓN -->
+    <h3 style="margin-top:2.5rem">✅ Autoevaluación del aprendiz</h3>
+    <p>Marca con honestidad y suma tus ✔:</p>
+    <ul class="tick">
+      <li>Explico qué significa CRUD y asocio cada operación con su comando SQL.</li>
+      <li>Escribo INSERT simple, múltiple y omitiendo columnas con DEFAULT.</li>
+      <li>Nunca inserto una columna IDENTITY.</li>
+      <li>Escribo UPDATE con WHERE y siempre verifico con SELECT antes.</li>
+      <li>Entiendo el peligro de UPDATE y DELETE sin WHERE.</li>
+      <li>Escribo DELETE con WHERE y conozco la diferencia con TRUNCATE.</li>
+      <li>Inserto en el orden padre→hijo y borro en el orden hijo→padre.</li>
+      <li>Sé qué hacen BEGIN TRAN, COMMIT y ROLLBACK.</li>
+    </ul>
+    <div class="score-note">
+      <span class="s1">7–8 ✔ ¡Listo para BD·108: SELECT con superpoderes!</span>
+      <span class="s2">4–6 ✔ Repite el E4 hasta dominar el orden con FK</span>
+      <span class="s3">0–3 ✔ Vuelve a la Unidad 01 y repasa el ciclo CRUD</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CHULETA ═══════════ -->
+<section id="chuleta" class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">§</span>
+      <h2 class="h2">Chuleta de esta entrega</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Operación</th><th>Sintaxis</th><th>Regla clave</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">INSERT</td><td class="mono">INSERT INTO tabla (cols) VALUES (vals);</td><td>Padre antes que hijo. No incluyas columnas IDENTITY.</td></tr>
+          <tr><td class="mono">UPDATE</td><td class="mono">UPDATE tabla SET col = val WHERE condición;</td><td>Siempre con WHERE. Verifica con SELECT antes.</td></tr>
+          <tr><td class="mono">DELETE</td><td class="mono">DELETE FROM tabla WHERE condición;</td><td>Siempre con WHERE. Hijo antes que padre.</td></tr>
+          <tr><td class="mono">TRUNCATE</td><td class="mono">TRUNCATE TABLE tabla;</td><td>Vacía la tabla y reinicia el IDENTITY. No se puede filtrar.</td></tr>
+          <tr><td class="mono">BEGIN TRAN</td><td class="mono">BEGIN TRAN; ... COMMIT; o ROLLBACK;</td><td>Agrupa operaciones: todas o ninguna.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><span class="tag">🔜 Próxima entrega</span>BD·108: <strong>SELECT con superpoderes</strong>. Aprenderás a filtrar con WHERE, ordenar con ORDER BY, limitar con TOP y usar funciones de agregado (COUNT, SUM, AVG) con GROUP BY.</div>
+  </div>
+</section>
+
+<!-- ═══════════ GLOSARIO ═══════════ -->
+<section class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">§</span>
+      <h2 class="h2">Mini glosario de esta entrega</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <dl class="gloss">
+      <div class="term"><dt>CRUD</dt><dd>Acrónimo de Create, Read, Update, Delete. Las cuatro operaciones fundamentales sobre los datos.</dd></div>
+      <div class="term"><dt>INSERT</dt><dd>Comando DML para agregar nuevas filas a una tabla.</dd></div>
+      <div class="term"><dt>UPDATE</dt><dd>Comando DML para modificar filas existentes. Siempre debe llevar WHERE.</dd></div>
+      <div class="term"><dt>DELETE</dt><dd>Comando DML para eliminar filas existentes. Siempre debe llevar WHERE.</dd></div>
+      <div class="term"><dt>TRUNCATE TABLE</dt><dd>Vacía una tabla completamente y reinicia el contador IDENTITY. No se puede filtrar con WHERE.</dd></div>
+      <div class="term"><dt>BEGIN TRAN</dt><dd>Inicia una transacción: agrupa varias operaciones en una sola unidad atómica.</dd></div>
+      <div class="term"><dt>COMMIT</dt><dd>Confirma los cambios de una transacción. Ya no se pueden deshacer.</dd></div>
+      <div class="term"><dt>ROLLBACK</dt><dd>Deshace todos los cambios de una transacción desde el BEGIN TRAN.</dd></div>
+    </dl>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="foot-brand">BD·107 — El ciclo CRUD (SQL Server)</div>
+      <small>Fase 3 · Poblar y modificar (DML) del tutorial de bases de datos · Versión 1.0 · 2026 · Permitida su reproducción con fines educativos citando la fuente.<br>Construido solo con HTML y CSS — cero JavaScript. También puedes imprimirlo (Ctrl/Cmd + P).</small>
+    </div>
+    <div class="top-link"><a href="#inicio">↑ Volver arriba</a></div>
+  </div>
+</footer>
+</body>
+</html>

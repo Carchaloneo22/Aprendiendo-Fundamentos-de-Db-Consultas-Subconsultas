@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tutorial DDL con SQL Server: crear tu primera base de datos y tu primera tabla, paso a paso, con actividades.">
+<title>Tu primera base de datos · BD·103 · SQL Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600;700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0e2b25; --ink-soft:#3c5a52;
+  --paper:#f2f5ef; --card:#ffffff;
+  --teal:#0f7f68; --teal-deep:#0a5747;
+  --amber:#ffb63d; --amber-deep:#a15c00;
+  --coral:#ff6d5a; --sky:#3f7fe0;
+  --line:#d9e1d7;
+  --shadow:8px 8px 0 rgba(14,43,37,.14);
+  --shadow-sm:4px 4px 0 rgba(14,43,37,.14);
+  --display:'Bricolage Grotesque','Arial Black',sans-serif;
+  --body:'Public Sans','Segoe UI',sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body);color:var(--ink);line-height:1.65;
+  background:
+    radial-gradient(900px 420px at 85% -80px, rgba(15,127,104,.16), transparent 60%),
+    radial-gradient(700px 400px at -10% 35%, rgba(255,182,61,.14), transparent 55%),
+    linear-gradient(rgba(14,43,37,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,43,37,.05) 1px, transparent 1px),
+    var(--paper);
+  background-size:auto,auto,34px 34px,34px 34px,auto;
+}
+section{scroll-margin-top:84px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 1.25rem}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:8px;top:8px;background:var(--amber);color:var(--ink);padding:.5rem .9rem;z-index:99;border-radius:8px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#e9f2ec;border-bottom:4px solid var(--amber);display:flex;align-items:center;flex-wrap:wrap;gap:.6rem 1.4rem;padding:.65rem 1.25rem}
+.brand{display:flex;align-items:center;gap:.6rem;color:#fff;text-decoration:none;font-family:var(--display);font-weight:800;font-size:1.05rem}
+.brand-badge{background:var(--amber);color:var(--ink);font-family:var(--mono);font-weight:700;padding:.18rem .5rem;border-radius:8px;box-shadow:2px 2px 0 rgba(0,0,0,.4)}
+.brand small{font-family:var(--mono);font-weight:400;font-size:.7rem;color:#9fc3b6;letter-spacing:.12em;text-transform:uppercase}
+.topbar nav{display:flex;flex-wrap:wrap;gap:.15rem;margin-left:auto}
+.topbar nav a{color:#dcebe3;text-decoration:none;font-size:.86rem;font-weight:600;padding:.35rem .75rem;border-radius:999px;transition:background .2s,color .2s}
+.topbar nav a:hover,.topbar nav a:focus-visible{background:rgba(255,182,61,.2);color:#ffd98a}
+
+.hero{padding:4.2rem 0 3rem}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:3rem;align-items:center}
+.kicker{font-family:var(--mono);font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-deep);font-weight:600;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
+.blink{display:inline-block;width:.6em;height:1.1em;background:var(--teal);animation:blink 1.1s steps(2) infinite;vertical-align:-.15em}
+@keyframes blink{50%{opacity:0}}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(2.5rem,5.2vw,4.3rem);line-height:1.02;margin-bottom:1.1rem}
+.hl{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%);padding:0 .08em}
+.lead{font-size:1.12rem;color:var(--ink-soft);max-width:34rem;margin-bottom:1.4rem}
+.meta-chips{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1rem}
+.chip{font-family:var(--mono);font-size:.74rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;background:#fff;padding:.3rem .75rem;box-shadow:var(--shadow-sm)}
+.trail{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.6rem;max-width:36rem}
+.trail span{font-family:var(--mono);font-size:.66rem;font-weight:700;border-radius:8px;padding:.22rem .55rem;border:1.5px solid var(--ink)}
+.trail .done{background:#d9f2e6;color:var(--teal-deep)}
+.trail .here{background:var(--amber);color:var(--ink);box-shadow:var(--shadow-sm)}
+.trail .next{background:#fff;color:var(--ink-soft);opacity:.85}
+.cta-row{display:flex;flex-wrap:wrap;gap:.9rem;margin-bottom:1.8rem}
+.btn{display:inline-block;padding:.8rem 1.4rem;border:2px solid var(--ink);border-radius:999px;font-weight:700;text-decoration:none;font-size:.95rem;background:var(--amber);color:var(--ink);box-shadow:4px 4px 0 var(--ink);transition:transform .18s,box-shadow .18s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn.ghost{background:#fff}
+.ficha{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:.8rem 1.1rem;font-size:.86rem;box-shadow:var(--shadow-sm)}
+.ficha strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--teal-deep)}
+.ficha .blank{display:inline-block;min-width:9rem;border-bottom:2px dotted var(--ink-soft)}
+
+.stack{position:relative}
+.table-card{background:#fff;border:2px solid var(--ink);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;animation:riseIn .7s .1s both}
+@keyframes riseIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.window-bar{display:flex;align-items:center;gap:.45rem;background:var(--ink);color:#cfe4da;font-family:var(--mono);font-size:.75rem;padding:.5rem .9rem}
+.dot{width:.65rem;height:.65rem;border-radius:50%}
+.dot.r{background:var(--coral)}.dot.a{background:var(--amber)}.dot.v{background:var(--teal)}
+.window-bar .fname{margin-left:.5rem;letter-spacing:.05em}
+.table-card table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.78rem}
+.table-card th{background:var(--teal-deep);color:#fff;text-align:left;padding:.5rem .6rem;font-weight:600}
+.table-card td{padding:.5rem .6rem;border-top:1px dashed var(--line)}
+.table-card tbody tr{animation:rowIn .55s both}
+.table-card tbody tr:nth-child(1){animation-delay:.35s}
+.table-card tbody tr:nth-child(2){animation-delay:.55s}
+.table-card tbody tr:nth-child(3){animation-delay:.75s}
+@keyframes rowIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.ok{color:var(--teal);font-weight:700}.no{color:var(--coral);font-weight:700}
+.id-gen{color:var(--amber-deep);font-weight:700}
+.terminal{position:relative;z-index:2;margin:-1.6rem 0 0 2.4rem;background:#10201c;color:#d7ede2;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;animation:riseIn .7s .45s both;width:94%}
+.terminal pre{margin:0;padding:.9rem 1.1rem;font-family:var(--mono);font-size:.76rem;line-height:1.75;overflow-x:auto}
+.p{color:var(--amber);font-weight:700}
+.kw{color:#ffcf7d;font-weight:600}
+.str{color:#8ee6ad}
+.num{color:#7cc7ff}
+.cm{color:#7fa396;font-style:italic}
+.res{color:#9fd6c2}
+.caret{display:inline-block;width:.55em;height:1em;background:#8ee6ad;animation:blink 1s steps(2) infinite;vertical-align:-.12em}
+.float-chip{position:absolute;z-index:3;font-family:var(--mono);font-weight:700;font-size:.8rem;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:.3rem .8rem;box-shadow:var(--shadow-sm);animation:floaty 4.5s ease-in-out infinite alternate}
+.fc1{top:-16px;right:-8px;background:var(--amber);animation-delay:.2s}
+.fc2{top:38%;left:-24px;background:#d9e9ff;animation-delay:1.1s}
+.fc3{bottom:6%;right:-14px;background:#d9f2e6;animation-delay:.6s}
+@keyframes floaty{from{transform:translateY(-5px)}to{transform:translateY(6px)}}
+
+.ticker{overflow:hidden;background:var(--ink);color:#e9f2ec;border-block:3px solid var(--amber);margin-top:2.5rem}
+.ticker-track{display:flex;width:max-content;animation:scrollX 32s linear infinite;padding:.6rem 0;font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;white-space:nowrap}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.tick-set{display:flex;gap:2.2rem;padding-right:2.2rem}
+.tick-set b{color:var(--amber)}
+@keyframes scrollX{to{transform:translateX(-50%)}}
+
+.ruta{padding:3.5rem 0 2.5rem}
+.h2{font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,3.4vw,2.4rem);line-height:1.1;margin-bottom:.4rem}
+.sub{color:var(--ink-soft);max-width:44rem;margin-bottom:1.6rem}
+.ruta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1rem}
+.ruta-item{display:flex;gap:1rem;align-items:flex-start;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.1rem 1.2rem;text-decoration:none;color:inherit;box-shadow:var(--shadow-sm);border-left:6px solid var(--teal);transition:transform .2s,box-shadow .2s}
+.ruta-item:nth-child(2){border-left-color:var(--amber)}
+.ruta-item:nth-child(3){border-left-color:var(--coral)}
+.ruta-item:nth-child(4){border-left-color:var(--sky)}
+.ruta-item:nth-child(5){border-left-color:var(--teal-deep)}
+.ruta-item:nth-child(6){border-left-color:var(--amber-deep)}
+.ruta-item:hover{transform:translateY(-5px);box-shadow:var(--shadow)}
+.ruta-num{font-family:var(--display);font-weight:800;font-size:2.6rem;line-height:1;color:rgba(15,127,104,.14);-webkit-text-stroke:1.8px var(--teal);transition:color .25s}
+.ruta-item:hover .ruta-num{color:var(--teal)}
+.ruta-item h3{font-size:1.02rem;margin-bottom:.2rem}
+.ruta-item p{font-size:.86rem;color:var(--ink-soft);margin-bottom:.45rem}
+.mini-time{font-family:var(--mono);font-size:.68rem;font-weight:600;background:var(--paper);border:1.5px solid var(--ink);border-radius:999px;padding:.15rem .55rem}
+
+.unit{padding:3.6rem 0}
+.unit-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:.4rem 1.1rem;border-bottom:3px solid var(--ink);padding-bottom:.8rem;margin-bottom:1.8rem}
+.unit-num{font-family:var(--display);font-weight:800;font-size:clamp(2.6rem,5vw,3.6rem);line-height:1;color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.u2 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber-deep)}
+.u3 .unit-num{color:rgba(255,109,90,.15);-webkit-text-stroke:2.4px var(--coral)}
+.u4 .unit-num{color:rgba(63,127,224,.15);-webkit-text-stroke:2.4px var(--sky)}
+.u5 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber)}
+.u6 .unit-num{color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.unit-time{font-family:var(--mono);font-size:.72rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.25rem .7rem;background:#fff;margin-left:auto}
+.unit h3{font-family:var(--display);font-weight:800;font-size:1.3rem;margin:2.2rem 0 .8rem}
+.unit p{margin-bottom:.9rem;max-width:60rem}
+.unit ul,.unit ol{margin:0 0 1rem 1.4rem}
+.unit li{margin-bottom:.4rem}
+kbd{font-family:var(--mono);background:#fff;border:2px solid var(--ink);border-bottom-width:3px;border-radius:6px;padding:.05rem .5rem;font-size:.82em;font-weight:600}
+
+.note{border-left:6px solid var(--amber);background:#fff8ea;border-radius:0 12px 12px 0;padding:1rem 1.2rem;margin:1.2rem 0;box-shadow:var(--shadow-sm);max-width:60rem}
+.note.tip{border-left-color:var(--teal);background:#eafaf3}
+.note.warn{border-left-color:var(--coral);background:#fff1ee}
+.note.instructor{border-left-color:var(--sky);background:#eef4ff}
+.note .tag{font-family:var(--mono);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:.3rem;color:var(--amber-deep)}
+.note.tip .tag{color:var(--teal-deep)}.note.warn .tag{color:#c2402f}.note.instructor .tag{color:var(--sky)}
+.def-big{font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1.45;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.4rem 1.6rem;box-shadow:var(--shadow);margin:1.4rem 0;max-width:56rem;position:relative}
+.def-big::before{content:"“";position:absolute;top:-1.4rem;left:1rem;font-family:var(--display);font-size:4rem;color:var(--amber);line-height:1}
+.def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%)}
+
+.table-wrap{overflow-x:auto;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);background:#fff;margin:1.2rem 0;max-width:64rem}
+table.data{width:100%;border-collapse:collapse;font-size:.9rem}
+table.data th{background:var(--teal-deep);color:#fff;text-align:left;padding:.6rem .8rem;font-size:.82rem;letter-spacing:.03em;white-space:nowrap}
+table.data td{padding:.55rem .8rem;border-top:1px solid var(--line);vertical-align:top}
+table.data tbody tr:nth-child(even) td{background:#f6faf6}
+table.data tbody tr:hover td{background:#eef7f0}
+table.data.small{font-size:.82rem}
+table.data.small td,table.data.small th{padding:.45rem .7rem}
+.mono{font-family:var(--mono);font-size:.84em}
+.pk,.fk{font-family:var(--mono);font-size:.62rem;font-weight:700;border-radius:6px;padding:.1rem .4rem;border:1.5px solid var(--ink)}
+.pk{background:var(--amber);color:#3a2b00}
+.fk{background:var(--coral);color:#fff}
+
+.step{display:flex;gap:1rem;margin:1.5rem 0;max-width:64rem;align-items:flex-start}
+.step-num{flex:none;width:2.6rem;height:2.6rem;border-radius:50%;background:var(--amber);border:2px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;box-shadow:var(--shadow-sm)}
+.step-body{min-width:0}
+.step-body h4{font-family:var(--display);font-size:1.05rem;margin-bottom:.3rem}
+.step-body p{margin-bottom:.5rem}
+
+.msg{font-family:var(--mono);font-size:.8rem;background:#eef4ff;border:2px solid var(--sky);border-radius:10px;padding:.6rem .95rem;margin:.8rem 0;max-width:64rem;color:#173d75}
+.msg::before{content:"💬 Mensaje: ";font-weight:700}
+.msg.ok{background:#eafaf3;border-color:var(--teal);color:var(--teal-deep)}
+.msg.err{background:#fff1ee;border-color:var(--coral);color:#8a2c1e}
+
+.qa{border:2px solid var(--ink);border-radius:12px;background:#fff;margin:1rem 0;box-shadow:var(--shadow-sm);max-width:64rem}
+.qa summary{cursor:pointer;padding:.8rem 1.1rem;font-weight:700;display:flex;align-items:center;gap:.6rem;list-style:none}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::before{content:"▸";color:var(--teal);font-size:1.1rem;transition:transform .25s}
+.qa[open] summary::before{transform:rotate(90deg)}
+.qa summary:hover{background:#f4faf6}
+.qa>div{padding:.2rem 1.1rem 1.1rem 2.3rem;border-top:2px dashed var(--line)}
+.qa.sol summary::before{color:var(--amber-deep)}
+
+.code{background:#0f2320;color:#dcefe6;border:2px solid var(--ink);border-radius:12px;overflow:hidden;margin:1.2rem 0;box-shadow:var(--shadow);max-width:64rem}
+.code-bar{display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:#0a1a17;border-bottom:1px solid #1e3a34;font-family:var(--mono);font-size:.72rem;color:#9db8ae}
+.code pre{margin:0;padding:1rem 1.2rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;line-height:1.7}
+.dark .code{border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+
+.dark{background:var(--ink);color:#e9f2ec}
+.dark .unit-head{border-bottom-color:var(--amber)}
+.dark .unit-time{background:#16352e;color:#ffd98a;border-color:#ffd98a}
+.dark p{color:#cfe2d9}
+.dark h3{color:#ffe1a8}
+.dark .step h4{color:#ffe1a8}
+.dark .note{background:#16352e;border-left-color:var(--amber);color:#e9f2ec}
+.dark .note .tag{color:var(--amber)}
+.dark table.data{color:var(--ink)}
+.dark .table-wrap{color:var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.45);border-color:#3a5a52}
+.dark .qa{background:#16352e;border-color:#3a5a52;color:#e9f2ec}
+.dark .qa summary:hover{background:#1d4038}
+.dark .qa>div{border-top-color:#3a5a52;color:#cfe2d9}
+.dark .msg{background:#16352e;border-color:#3a5a52;color:#cfe2d9}
+.dark .def-big{background:#16352e;color:#e9f2ec;border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+.dark .def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.55) 60%)}
+
+.act{border:2px solid var(--ink);border-radius:16px;background:#fff;box-shadow:var(--shadow);margin:1.8rem 0;overflow:hidden}
+.act-head{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem;padding:.9rem 1.3rem;background:var(--paper);border-bottom:2px solid var(--ink)}
+.act-num{font-family:var(--display);font-weight:800;font-size:1.25rem;background:var(--amber);border:2px solid var(--ink);border-radius:10px;padding:.12rem .65rem}
+.act.a2 .act-num{background:#ffd9d3}.act.a3 .act-num{background:#d9e9ff}
+.act.a4 .act-num{background:#ffe9c4}
+.act-head h3{font-family:var(--display);font-size:1.15rem;margin:0}
+.act-head .mini-time{margin-left:auto}
+.act-body{padding:1.3rem 1.4rem}
+.act-body>p{max-width:56rem}
+.answer{border:2px dashed var(--teal);border-radius:12px;padding:1rem 1.2rem;min-height:96px;margin:1rem 0;background:repeating-linear-gradient(transparent 0 27px, rgba(15,127,104,.14) 27px 28px);color:var(--ink-soft);font-style:italic;font-size:.92rem}
+ul.tick{list-style:none;margin:.8rem 0}
+ul.tick li{position:relative;padding-left:2.1rem;margin:.55rem 0}
+ul.tick li::before{content:"";position:absolute;left:0;top:.2em;width:1.05em;height:1.05em;border:2px solid var(--ink);border-radius:4px;background:#fff}
+.rubric td:first-child{font-weight:700}
+.score-note{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1rem}
+.score-note span{font-size:.85rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.35rem .85rem;background:#fff}
+.score-note .s1{background:#d9f2e6}.score-note .s2{background:#fff3d9}.score-note .s3{background:#ffd9d3}
+
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.9rem;margin-top:1rem}
+.term{border:2px solid var(--ink);border-radius:12px;background:#fff;padding:.9rem 1.1rem;box-shadow:var(--shadow-sm);transition:transform .2s}
+.term:hover{transform:translateY(-3px)}
+.term dt{font-family:var(--mono);font-weight:700;font-size:.9rem;margin-bottom:.25rem}
+.term dt::before{content:"▣ ";color:var(--teal)}
+.term dd{font-size:.86rem;color:var(--ink-soft)}
+
+footer{background:var(--ink);color:#cfe2d9;margin-top:4rem;border-top:4px solid var(--amber)}
+footer .wrap{padding-top:2.5rem;padding-bottom:2.5rem;display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-start}
+footer .foot-brand{font-family:var(--display);font-weight:800;font-size:1.3rem;color:#fff}
+footer small{display:block;margin-top:.4rem;font-family:var(--mono);font-size:.72rem;color:#9fc3b6;max-width:34rem;line-height:1.7}
+footer .top-link{align-self:center}
+footer .top-link a{color:#ffd98a;text-decoration:none;font-family:var(--mono);font-size:.85rem;border:2px solid #ffd98a;border-radius:999px;padding:.5rem 1.1rem;transition:background .2s}
+footer .top-link a:hover{background:rgba(255,217,138,.15)}
+
+@media (max-width:940px){
+  .hero-grid{grid-template-columns:1fr;gap:2.5rem}
+  .terminal{margin:1.2rem 0 0}
+  .topbar nav{margin-left:0;width:100%;overflow-x:auto}
+}
+@media print{
+  .topbar,.ticker,.cta-row,.float-chip,.top-link{display:none!important}
+  body{background:#fff}
+  .table-card,.terminal,.code,.act,.qa{box-shadow:none;break-inside:avoid}
+  .unit,.hero{padding:1.2rem 0}
+  .terminal pre,.code pre{white-space:pre-wrap}
+  a{color:inherit;text-decoration:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="topbar">
+  <a class="brand" href="#inicio"><span class="brand-badge">BD·103</span> Tu primera base de datos <small>· SQL Server</small></a>
+  <nav aria-label="Secciones del tutorial">
+    <a href="#herramientas">Herramientas</a>
+    <a href="#familias">Familias SQL</a>
+    <a href="#crearbd">CREATE DATABASE</a>
+    <a href="#creartabla">CREATE TABLE</a>
+    <a href="#inspeccionar">Inspeccionar</a>
+    <a href="#taller">Taller</a>
+    <a href="#chuleta">Chuleta</a>
+  </nav>
+</header>
+
+<main id="contenido">
+
+<!-- ═══════════ PORTADA ═══════════ -->
+<section id="inicio" class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker"><span class="blink"></span> Fase 2 · Construir (DDL) · Motor: SQL Server</p>
+      <h1>Hola, mundo:<br><span class="hl">hola, base de datos.</span></h1>
+      <p class="lead">Ya sabes <em>qué</em> es una base de datos y cómo se diseña. Ahora vas a <strong>crearla de verdad</strong>: escribirás tus primeros comandos DDL en SQL Server para construir, paso a paso, una base de datos y su primera tabla.</p>
+      <div class="meta-chips">
+        <span class="chip">⏱ ≈ 3 sesiones</span>
+        <span class="chip">🗄️ Motor: SQL Server</span>
+        <span class="chip">🖥️ Cliente: SSMS</span>
+        <span class="chip">📄 Imprimible</span>
+      </div>
+      <div class="trail" aria-label="Progreso del curso">
+        <span class="done">BD·101 ✔ Conceptos</span>
+        <span class="done">BD·102 ✔ Normalización</span>
+        <span class="here">BD·103 ● Estás aquí</span>
+        <span class="next">BD·104 Restricciones</span>
+        <span class="next">BD·105 Dos tablas</span>
+        <span class="next">BD·106 N tablas</span>
+        <span class="next">BD·107 DML…</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn" href="#herramientas">Conocer las herramientas ↓</a>
+        <a class="btn ghost" href="#taller">Ir directo al taller</a>
+      </div>
+      <div class="ficha">
+        <strong>Ficha / Grupo:</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Instructor(a):</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Servidor SQL:</strong> <span class="blank">&nbsp;</span>
+      </div>
+    </div>
+
+    <div class="stack">
+      <span class="float-chip fc1">DDL</span>
+      <span class="float-chip fc2">CREATE TABLE</span>
+      <span class="float-chip fc3">IDENTITY</span>
+      <div class="table-card">
+        <div class="window-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span><span class="fname">tienda_db · dbo.productos</span></div>
+        <table>
+          <thead><tr><th>id</th><th>nombre</th><th>precio</th><th>activo</th></tr></thead>
+          <tbody>
+            <tr><td class="id-gen">1 ⚙</td><td>Gaseosa 400 ml</td><td>3500.00</td><td class="ok">✔</td></tr>
+            <tr><td class="id-gen">2 ⚙</td><td>Empanada</td><td>2500.00</td><td class="ok">✔</td></tr>
+            <tr><td class="id-gen">3 ⚙</td><td>Café</td><td>1800.00</td><td class="no">✘</td></tr>
+          </tbody>
+        </table>
+        <div class="window-bar" style="border-top:2px solid var(--coral)">⚙ id generado automáticamente con IDENTITY(1,1)</div>
+      </div>
+      <div class="terminal">
+        <div class="window-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span><span class="fname">SSMS · Nueva consulta</span></div>
+        <pre><span class="p">1&gt;</span> <span class="kw">CREATE DATABASE</span> tienda_db;
+<span class="res">Command(s) completed successfully.</span>
+<span class="p">2&gt;</span> <span class="kw">CREATE TABLE</span> productos ( id <span class="kw">INT IDENTITY</span>(<span class="num">1</span>,<span class="num">1</span>), ... );
+<span class="res">Command(s) completed successfully.</span>
+<span class="p">3&gt;</span> <span class="caret"></span></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <div class="tick-set">
+        <span>CREATE DATABASE sueños;</span><span><b>DDL</b> construye la estructura</span><span>INT IDENTITY(1,1)</span><span>DECIMAL(10,2) para el dinero</span><span>VARCHAR(80)</span><span>BIT: ¿1 o 0?</span><span>USE tienda_db;</span><span>GO</span><span>DROP TABLE IF EXISTS miedo;</span><span>EXEC sp_help 'aprendices';</span><span>F5 = ejecutar</span>
+      </div>
+      <div class="tick-set">
+        <span>CREATE DATABASE sueños;</span><span><b>DDL</b> construye la estructura</span><span>INT IDENTITY(1,1)</span><span>DECIMAL(10,2) para el dinero</span><span>VARCHAR(80)</span><span>BIT: ¿1 o 0?</span><span>USE tienda_db;</span><span>GO</span><span>DROP TABLE IF EXISTS miedo;</span><span>EXEC sp_help 'aprendices';</span><span>F5 = ejecutar</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ HOJA DE RUTA ═══════════ -->
+<section class="ruta">
+  <div class="wrap">
+    <h2 class="h2">Hoja de ruta de esta entrega</h2>
+    <p class="sub">Antes de escribir SQL necesitas conocer tu taller de trabajo. Luego: crear la base, crear la tabla, verificarla y dejarla lista para recibir datos (eso último es el tema de BD·107).</p>
+    <div class="ruta-grid">
+      <a class="ruta-item" href="#herramientas"><span class="ruta-num">01</span><div><h3>El taller de trabajo</h3><p>SQL Server, SSMS y tu primera consulta ejecutada.</p><span class="mini-time">⏱ 15 min</span></div></a>
+      <a class="ruta-item" href="#familias"><span class="ruta-num">02</span><div><h3>Las familias de SQL</h3><p>DDL, DML, DQL, DCL y TCL: el mapa completo del idioma.</p><span class="mini-time">⏱ 15 min</span></div></a>
+      <a class="ruta-item" href="#crearbd"><span class="ruta-num">03</span><div><h3>CREATE DATABASE</h3><p>Tu primera base de datos y las reglas para nombrarla.</p><span class="mini-time">⏱ 20 min</span></div></a>
+      <a class="ruta-item" href="#creartabla"><span class="ruta-num">04</span><div><h3>CREATE TABLE</h3><p>Tu primera tabla, con los tipos de datos de SQL Server.</p><span class="mini-time">⏱ 30 min</span></div></a>
+      <a class="ruta-item" href="#inspeccionar"><span class="ruta-num">05</span><div><h3>Inspeccionar, alterar y borrar</h3><p>sp_columns, sp_help, ALTER TABLE, DROP y la prueba de vida.</p><span class="mini-time">⏱ 20 min</span></div></a>
+      <a class="ruta-item" href="#taller"><span class="ruta-num">06</span><div><h3>Taller paso a paso</h3><p>Clasificar, encontrar errores, crear desde una ficha y reto final.</p><span class="mini-time">⏱ 90 min</span></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 01 · HERRAMIENTAS ═══════════ -->
+<section id="herramientas" class="unit u1">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">01</span>
+      <h2 class="h2">El taller de trabajo: SQL Server y SSMS</h2>
+      <span class="unit-time">⏱ 15 min de lectura</span>
+    </div>
+
+    <p>En el mundo de las bases de datos hay dos piezas que siempre trabajan juntas:</p>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th style="width:22%">Pieza</th><th style="width:34%">¿Qué es?</th><th>Analogía</th></tr></thead>
+        <tbody>
+          <tr><td><strong>El motor</strong><br><span class="mono">SQL Server</span></td><td>El software que guarda los datos, crea las estructuras y ejecuta tus comandos. Corre en un servidor.</td><td>La cocina del restaurante: ahí se procesa todo, aunque tú no la veas.</td></tr>
+          <tr><td><strong>El cliente</strong><br><span class="mono">SSMS</span></td><td>SQL Server Management Studio: la ventana desde donde escribes comandos y ves resultados. También puedes usar Azure Data Studio.</td><td>La mesa y el mesero: tú pides ahí, y ahí te sirven la respuesta.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Tu primera sesión, paso a paso</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Abre SSMS y conéctate</h4><p>En la ventana “Connect to Server” escribe el <strong>nombre del servidor</strong> que te dé tu instructor(a) y elige el tipo de autenticación (en el salón suele ser <em>Windows Authentication</em>). Clic en <strong>Connect</strong>.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Explora el Object Explorer</h4><p>El panel izquierdo muestra el servidor y, dentro de él, la carpeta <strong>Databases</strong>: ahí viven todas las bases de datos. Todavía no está la tuya… por ahora.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Abre una nueva consulta</h4><p>Botón <strong>New Query</strong> (o clic derecho sobre el servidor → New Query). Se abre una hoja en blanco: es tu mesa de trabajo.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Escribe y ejecuta</h4><p>Escribe tu instrucción y presión <kbd>F5</kbd> o el botón <strong>! Execute</strong>. Abajo aparecen dos pestañas: <strong>Results</strong> (datos en forma de tabla) y <strong>Messages</strong> (confirmaciones y errores).</p></div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body"><h4>El “Hola mundo” de SQL Server</h4>
+      <div class="code">
+        <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; hola_mundo.sql</div>
+        <pre><span class="kw">SELECT</span> @@VERSION;   <span class="cm">-- pregunta al motor qué versión es</span></pre>
+      </div>
+      <p>Si en Results ves un texto largo que empieza con “Microsoft SQL Server…”, ¡felicidades: ya hablaste con el motor y te respondió!</p>
+    </div></div>
+
+    <div class="note tip"><span class="tag">💡 Tres costumbres de profesional</span>① Selecciona solo las líneas que quieres ejecutar antes de <kbd>F5</kbd> (si no, se ejecuta todo). ② Lee siempre la pestaña <strong>Messages</strong>: ahí viven los éxitos y las pistas de los errores. ③ Guarda tu trabajo como archivo <span class="mono">.sql</span> desde el primer día.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 02 · FAMILIAS (OSCURA) ═══════════ -->
+<section id="familias" class="unit u2 dark">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">02</span>
+      <h2 class="h2">Las familias de SQL: el mapa del idioma</h2>
+      <span class="unit-time">⏱ 15 min de lectura</span>
+    </div>
+
+    <p>SQL no es un solo comando: es un idioma con “familias” de comandos, cada una con un oficio. Conocer el mapa te dirá siempre en qué parte del curso estás parado.</p>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Familia</th><th>Significado</th><th>Comandos estrella</th><th>Oficio</th><th>¿Cuándo la veremos?</th></tr></thead>
+        <tbody>
+          <tr><td class="mono"><strong>DDL</strong></td><td>Data Definition Language</td><td class="mono">CREATE · ALTER · DROP</td><td>Construye y modifica la <strong>estructura</strong> (bases y tablas).</td><td><strong>Esta entrega 🚧</strong></td></tr>
+          <tr><td class="mono"><strong>DML</strong></td><td>Data Manipulation Language</td><td class="mono">INSERT · UPDATE · DELETE</td><td>Mueve y transforma los <strong>datos</strong> dentro de la estructura.</td><td>BD·107</td></tr>
+          <tr><td class="mono"><strong>DQL</strong></td><td>Data Query Language</td><td class="mono">SELECT</td><td>Pregunta y obtiene <strong>resultados</strong>.</td><td>BD·108 y BD·109</td></tr>
+          <tr><td class="mono"><strong>DCL</strong></td><td>Data Control Language</td><td class="mono">GRANT · REVOKE</td><td>Da y quita <strong>permisos</strong>.</td><td>Más adelante</td></tr>
+          <tr><td class="mono"><strong>TCL</strong></td><td>Transaction Control Language</td><td class="mono">BEGIN TRAN · COMMIT · ROLLBACK</td><td>Agrupa cambios en <strong>transacciones</strong> seguras.</td><td>Más adelante</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note"><span class="tag">🤓 Nota de puristas</span>Algunos libros agrupan SELECT dentro de DML. Es válido; aquí lo llamamos <strong>DQL</strong> para que el mapa sea más claro. Lo importante: primero se construye la casa (DDL), luego se vive en ella (DML), y luego se pregunta por ella (DQL).</div>
+
+    <div class="def-big">El orden natural del trabajo con bases de datos: <strong>DDL crea → DML alimenta y modifica → DQL pregunta</strong>. Este tutorial sigue exactamente ese camino.</div>
+
+    <h3>Analogía para no olvidarlo</h3>
+    <p>Piensa en un cuaderno nuevo:</p>
+    <ul>
+      <li><strong>DDL:</strong> comprar el cuaderno, dibujar las tablas y ponerles títulos. (<span class="mono">CREATE TABLE</span>)</li>
+      <li><strong>DML:</strong> escribir, corregir con corrector o arrancar páginas. (<span class="mono">INSERT, UPDATE, DELETE</span>)</li>
+      <li><strong>DQL:</strong> leerlo y buscar información. (<span class="mono">SELECT</span>)</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 03 · CREATE DATABASE ═══════════ -->
+<section id="crearbd" class="unit u3">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">03</span>
+      <h2 class="h2">Primer paso: CREATE DATABASE</h2>
+      <span class="unit-time">⏱ 20 min práctica</span>
+    </div>
+
+    <h3>Antes de escribir: las reglas de los nombres</h3>
+    <ul>
+      <li>Empieza siempre con una <strong>letra</strong> (nada de números o símbolos al inicio).</li>
+      <li><strong>Sin espacios ni caracteres especiales:</strong> usa guion bajo (<span class="mono">tienda_db</span>, nunca <span class="mono">tienda db</span>).</li>
+      <li>Evita palabras reservadas del idioma (<span class="mono">table</span>, <span class="mono">select</span>, <span class="mono">order</span>…).</li>
+      <li>Convención del curso: <strong>minúsculas con guiones bajos</strong>, y el sufijo <span class="mono">_db</span> para bases de datos.</li>
+    </ul>
+
+    <h3>El script</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; crear_base.sql</div>
+      <pre><span class="cm">-- 1. Crear la base de datos</span>
+<span class="kw">CREATE DATABASE</span> tienda_db;
+<span class="kw">GO</span>
+<span class="cm">-- 2. "Entrar" en ella: le dice al motor dónde trabajar</span>
+<span class="kw">USE</span> tienda_db;
+<span class="kw">GO</span></pre>
+    </div>
+    <div class="msg ok">Command(s) completed successfully.</div>
+    <p>Verifica en el Object Explorer: dentro de <strong>Databases</strong> ahora aparece <span class="mono">tienda_db</span>. Ya existe tu primera base de datos.</p>
+
+    <div class="note warn"><span class="tag">🧩 ¿Qué es GO?</span><span class="mono">GO</span> no es una instrucción SQL: es la señal con la que SSMS entiende “ejecuta el lote de arriba antes de seguir”. Se usa después de <span class="mono">CREATE DATABASE</span> porque el <span class="mono">USE</span> necesita que la base <strong>ya exista</strong> para poder entrar en ella.</div>
+
+    <h3>Si algo sale mal…</h3>
+    <div class="msg err">Msg 1801, Level 16, State 3 — Database 'tienda_db' already exists. Choose a different database name.</div>
+    <p>Traducción: esa base ya existe. Tienes dos caminos: usar otro nombre, o borrarla primero (veremos <span class="mono">DROP DATABASE</span> en la Unidad 05). <strong>Los errores en SQL no son fracasos: son mensajes del motor pidiéndote precisión.</strong></p>
+
+    <details class="qa">
+      <summary>Mini reto ⚡: crea tu propia base</summary>
+      <div>
+        <p>Escribe el script para crear una base llamada <span class="mono">refugio_db</span> y entrar en ella. Intenta escribirlo sin mirar arriba.</p>
+        <div class="code"><pre><span class="kw">CREATE DATABASE</span> refugio_db;
+<span class="kw">GO</span>
+<span class="kw">USE</span> refugio_db;
+<span class="kw">GO</span></pre></div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 04 · CREATE TABLE ═══════════ -->
+<section id="creartabla" class="unit u4">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">04</span>
+      <h2 class="h2">Segundo paso: CREATE TABLE y los tipos de datos</h2>
+      <span class="unit-time">⏱ 30 min práctica</span>
+    </div>
+
+    <p>Con la base creada y activa, vamos a construir la tabla <span class="mono">productos</span> de la tienda escolar. La estructura básica es:</p>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; sintaxis</div>
+      <pre><span class="kw">CREATE TABLE</span> nombre_tabla (
+    columna1  TIPO,
+    columna2  TIPO,
+    columna3  TIPO
+);</pre>
+    </div>
+
+    <h3>Los tipos de datos más usados en SQL Server</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th class="mono">Tipo</th><th>¿Qué guarda?</th><th>Ejemplo</th><th>Úsalo para…</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">INT</td><td>Números enteros.</td><td class="mono">25, -3</td><td>Cantidades, edades, identificadores.</td></tr>
+          <tr><td class="mono">DECIMAL(10,2)</td><td>Decimales <strong>exactos</strong> (10 dígitos en total, 2 de ellos decimales).</td><td class="mono">19990.50</td><td><strong>Dinero. Siempre.</strong></td></tr>
+          <tr><td class="mono">VARCHAR(80)</td><td>Texto de longitud variable hasta 80 caracteres.</td><td class="mono">'Empanada'</td><td>Nombres, descripciones cortas.</td></tr>
+          <tr><td class="mono">NVARCHAR(80)</td><td>Como VARCHAR, pero con soporte Unicode completo.</td><td class="mono">'Nandú'</td><td>Textos con caracteres internacionales.</td></tr>
+          <tr><td class="mono">CHAR(3)</td><td>Texto de longitud <strong>fija</strong> (rellena con espacios).</td><td class="mono">'COL'</td><td>Códigos de tamaño siempre igual.</td></tr>
+          <tr><td class="mono">DATE</td><td>Fecha sin hora.</td><td class="mono">'2026-09-16'</td><td>Fecha de nacimiento, de vencimiento.</td></tr>
+          <tr><td class="mono">DATETIME2</td><td>Fecha con hora.</td><td class="mono">'2026-09-16 14:30:00'</td><td>Eventos, registros con hora exacta.</td></tr>
+          <tr><td class="mono">BIT</td><td>0 ó 1 (el “booleano” de SQL Server).</td><td class="mono">1 / 0</td><td>Banderas: ¿activo?, ¿vacunado?, ¿pagó?</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note warn"><span class="tag">⚠️ Dos clásicos de examen</span>① Para dinero nunca uses tipos aproximados (como FLOAT): <span class="mono">DECIMAL</span> es exacto. ② En SQL Server el “verdadero/falso” es <span class="mono">BIT</span>: se escribe <span class="mono">1</span> (sí) o <span class="mono">0</span> (no), sin comillas.</div>
+
+    <h3>Nuestra tabla productos, columna por columna</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; crear_productos.sql</div>
+      <pre><span class="kw">CREATE TABLE</span> productos (
+    id                <span class="kw">INT IDENTITY</span>(<span class="num">1</span>,<span class="num">1</span>),  <span class="cm">-- número generado solo: inicia en 1, sube de 1 en 1</span>
+    nombre            <span class="kw">VARCHAR</span>(<span class="num">80</span>),          <span class="cm">-- texto de hasta 80 caracteres</span>
+    precio            <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),       <span class="cm">-- dinero, exacto, 2 decimales</span>
+    cantidad          <span class="kw">INT</span>,                  <span class="cm">-- unidades en bodega</span>
+    fecha_vencimiento <span class="kw">DATE</span>,                 <span class="cm">-- solo fecha, sin hora</span>
+    activo            <span class="kw">BIT</span>                   <span class="cm">-- 1 = se vende, 0 = no</span>
+);</pre>
+    </div>
+    <p>Ejecuta con <kbd>F5</kbd> y revisa <strong>Messages</strong>:</p>
+    <div class="msg ok">Command(s) completed successfully.</div>
+    <p>En el Object Explorer: <span class="mono">tienda_db → Tables → dbo.productos</span>. El prefijo <span class="mono">dbo</span> es el <strong>esquema</strong>, algo así como la “carpeta” donde vive la tabla (dbo = database owner, la carpeta por defecto).</p>
+
+    <div class="note tip"><span class="tag">⚙ Sobre IDENTITY(1,1)</span>Cuando insertemos filas <strong>no escribiremos el id</strong>: el motor lo asigna solo (1, 2, 3…). Es el candidato perfecto para la clave primaria, que convertiremos oficialmente en PK en la próxima entrega (BD·104) con las restricciones.</div>
+
+    <h3>Mini ejercicio ⚡: elige el tipo correcto</h3>
+    <p>¿Qué tipo de SQL Server usarías para cada campo de una tabla <span class="mono">estudiantes</span>?</p>
+    <ul>
+      <li>nombre_del_estudiante →</li>
+      <li>fecha_de_nacimiento →</li>
+      <li>promedio (de 0.0 a 5.0, con decimales) →</li>
+      <li>¿está matriculado? →</li>
+    </ul>
+    <details class="qa sol">
+      <summary>Ver solución</summary>
+      <div><p><span class="mono">VARCHAR(100)</span> · <span class="mono">DATE</span> · <span class="mono">DECIMAL(3,2)</span> · <span class="mono">BIT</span>. Si pensaste en NVARCHAR para el nombre, también es válido.</p></div>
+    </details>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 05 · INSPECCIONAR ═══════════ -->
+<section id="inspeccionar" class="unit u5">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">05</span>
+      <h2 class="h2">Inspeccionar, alterar y borrar (con responsabilidad)</h2>
+      <span class="unit-time">⏱ 20 min práctica</span>
+    </div>
+
+    <h3>Ver la estructura que creaste</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; inspeccionar.sql</div>
+      <pre><span class="kw">EXEC</span> sp_columns <span class="str">'productos'</span>;   <span class="cm">-- lista de columnas y sus tipos</span>
+<span class="kw">EXEC</span> sp_help    <span class="str">'productos'</span>;   <span class="cm">-- ficha completa: columnas, identidad, etc.</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos;         <span class="cm">-- ver los datos (aún está vacía)</span></pre>
+    </div>
+    <p>El último SELECT devolverá los encabezados de las columnas y el mensaje <span class="mono">(0 rows affected)</span>: normal, todavía no hay datos. También puedes hacerlo con el ratón: clic derecho sobre la tabla → <strong>Design</strong>.</p>
+
+    <h3>Agregar una columna sin botar la tabla: ALTER TABLE</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; alterar.sql</div>
+      <pre><span class="kw">ALTER TABLE</span> productos
+<span class="kw">ADD</span> descripcion <span class="kw">VARCHAR</span>(<span class="num">150</span>);   <span class="cm">-- una columna nueva al final</span></pre>
+    </div>
+    <div class="msg ok">Command(s) completed successfully.</div>
+
+    <h3>La prueba de vida (un adelanto de DML)</h3>
+    <p>Para confirmar que la tabla funciona de verdad, insertemos un registro de prueba. No listamos <span class="mono">id</span>: IDENTITY lo genera solo. (INSERT a fondo será el tema de BD·107.)</p>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; prueba_de_vida.sql</div>
+      <pre><span class="kw">INSERT INTO</span> productos (nombre, precio, cantidad, fecha_vencimiento, activo)
+<span class="kw">VALUES</span> (<span class="str">'Gaseosa 400 ml'</span>, <span class="num">3500</span>, <span class="num">48</span>, <span class="str">'2026-12-15'</span>, <span class="num">1</span>);
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> productos;   <span class="cm">-- ahora sí: 1 fila, con id = 1 ⚙</span></pre>
+    </div>
+
+    <h3>Borrar: el poder y la responsabilidad</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; borrar.sql</div>
+      <pre><span class="cm">-- Borrar una tabla (si existe): seguro y sin errores si no existe</span>
+<span class="kw">DROP TABLE IF EXISTS</span> productos;
+
+<span class="cm">-- Borrar TODA una base de datos: primero hay que "salir" de ella</span>
+<span class="kw">USE</span> master;
+<span class="kw">GO</span>
+<span class="kw">DROP DATABASE</span> tienda_db;</pre>
+    </div>
+    <div class="note warn"><span class="tag">🚨 Regla de oro</span><span class="mono">DROP DATABASE</span> es <strong>irreversible</strong> y no pide confirmación. Además, SQL Server no te deja borrar una base mientras estés “dentro” de ella: por eso primero <span class="mono">USE master</span>. Antes de ejecutarlo, respira y relee el nombre.</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 06 · TALLER ═══════════ -->
+<section id="taller" class="unit u6">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">06</span>
+      <h2 class="h2">Taller paso a paso</h2>
+      <span class="unit-time">⏱ 90 min · laboratorio</span>
+    </div>
+    <p>Los dos primeros ejercicios son en papel (o en el cuaderno); los dos últimos, frente al computador con SSMS abierto. Las soluciones son para autoevaluarte al final: primero intenta, luego comprueba.</p>
+    <div class="note instructor"><span class="tag">👩‍🏫 Nota para el instructor(a)</span>Sugerencia de 3 sesiones de laboratorio — <strong>S1:</strong> Unidades 01–03 + E1 · <strong>S2:</strong> Unidad 04 + E2 y E3 · <strong>S3:</strong> Unidad 05 + E4 (reto) con socialización. Si no hay sala con SQL Server instalado, SQL Server Express (gratuito) + SSMS funcionan en cualquier PC del salón; como plan B, el instructor puede proyectar un solo SSMS y los aprendices dictan los scripts.</div>
+
+    <!-- E1 -->
+    <article class="act a1">
+      <div class="act-head"><span class="act-num">E1</span><h3>¿A qué familia pertenece? · en papel</h3><span class="mini-time">⏱ 10 min · individual</span></div>
+      <div class="act-body">
+        <p>Clasifica cada comando en DDL, DML, DQL, DCL o TCL:</p>
+        <div class="table-wrap">
+          <table class="data small">
+            <thead><tr><th class="mono">Comando</th><th style="width:26%">Tu clasificación</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">CREATE TABLE</td><td>________________</td></tr>
+              <tr><td class="mono">INSERT INTO</td><td>________________</td></tr>
+              <tr><td class="mono">SELECT</td><td>________________</td></tr>
+              <tr><td class="mono">DROP DATABASE</td><td>________________</td></tr>
+              <tr><td class="mono">UPDATE</td><td>________________</td></tr>
+              <tr><td class="mono">ALTER TABLE</td><td>________________</td></tr>
+              <tr><td class="mono">DELETE</td><td>________________</td></tr>
+              <tr><td class="mono">GRANT</td><td>________________</td></tr>
+              <tr><td class="mono">COMMIT</td><td>________________</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div><p><strong>DDL:</strong> CREATE TABLE, DROP DATABASE, ALTER TABLE · <strong>DML:</strong> INSERT INTO, UPDATE, DELETE · <strong>DQL:</strong> SELECT · <strong>DCL:</strong> GRANT · <strong>TCL:</strong> COMMIT. (USE también se considera DDL: cambia el contexto de trabajo.)</p></div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E2 -->
+    <article class="act a2">
+      <div class="act-head"><span class="act-num">E2</span><h3>Cazador de errores · en papel</h3><span class="mini-time">⏱ 15 min · parejas</span></div>
+      <div class="act-body">
+        <p>Este script tiene <strong>5 errores</strong>. Encuéntralos y explica por qué cada uno falla:</p>
+        <div class="code">
+          <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; script_con_errores.sql — ¡no lo ejecutes así!</div>
+          <pre><span class="kw">CREATE DATABASE</span> tienda db;
+<span class="kw">USE</span> tienda;
+
+<span class="kw">CREATE TABLE</span> productos (
+    id       <span class="kw">INT IDENTITY</span>(<span class="num">1</span>,<span class="num">1</span>),
+    nombre   <span class="kw">VARCAR</span>(<span class="num">80</span>),
+    precio   <span class="kw">DOUBLE</span>,
+    cantidad <span class="kw">INT</span></pre>
+        </div>
+        <div class="answer">✏️ Anota aquí los 5 errores y su explicación.</div>
+        <details class="qa"><summary>💡 Pista</summary><div><p>Revisa: un nombre, el USE, dos tipos de datos y el final del CREATE TABLE.</p></div></details>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div>
+            <p>① <span class="mono">tienda db</span> tiene espacio: los nombres no llevan espacios. ② <span class="mono">USE tienda</span> apunta a una base que no existe (se llama diferente). ③ <span class="mono">VARCAR</span> está mal escrito: es <span class="mono">VARCHAR</span>. ④ <span class="mono">DOUBLE</span> no existe en SQL Server (y para dinero se usa <span class="mono">DECIMAL</span>). ⑤ Falta cerrar el paréntesis <span class="mono">)</span> del CREATE TABLE.</p>
+            <div class="code"><pre><span class="cm">-- Versión corregida</span>
+<span class="kw">CREATE DATABASE</span> tienda_db;
+<span class="kw">GO</span>
+<span class="kw">USE</span> tienda_db;
+<span class="kw">GO</span>
+<span class="kw">CREATE TABLE</span> productos (
+    id       <span class="kw">INT IDENTITY</span>(<span class="num">1</span>,<span class="num">1</span>),
+    nombre   <span class="kw">VARCHAR</span>(<span class="num">80</span>),
+    precio   <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    cantidad <span class="kw">INT</span>
+);</pre></div>
+          </div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E3 -->
+    <article class="act a3">
+      <div class="act-head"><span class="act-num">E3</span><h3>De la ficha al script · en el computador</h3><span class="mini-time">⏱ 20 min · individual</span></div>
+      <div class="act-body">
+        <p>El coordinador pide una base <span class="mono">academia_db</span> con la tabla <span class="mono">estudiantes</span>. Esta es la ficha de requisitos: completa la columna del tipo y luego escribe el script completo.</p>
+        <div class="table-wrap">
+          <table class="data small">
+            <thead><tr><th class="mono">Campo</th><th>Descripción</th><th style="width:28%">Tipo que propones</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">id</td><td>Código automático único de cada estudiante.</td><td>________________</td></tr>
+              <tr><td class="mono">nombre</td><td>Nombre completo (hasta 100 caracteres).</td><td>________________</td></tr>
+              <tr><td class="mono">correo</td><td>Correo electrónico (hasta 120 caracteres).</td><td>________________</td></tr>
+              <tr><td class="mono">fecha_nacimiento</td><td>Solo la fecha.</td><td>________________</td></tr>
+              <tr><td class="mono">promedio</td><td>Nota de 0.0 a 5.0 con decimales.</td><td>________________</td></tr>
+              <tr><td class="mono">activo</td><td>¿Está matriculado este año? Sí o no.</td><td>________________</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="answer">✏️ Escribe aquí tu script completo: CREATE DATABASE + GO + USE + GO + CREATE TABLE.</div>
+        <details class="qa sol"><summary>🔍 Solución</summary>
+          <div>
+            <p>Tipos: <span class="mono">INT IDENTITY(1,1)</span>, <span class="mono">VARCHAR(100)</span>, <span class="mono">VARCHAR(120)</span>, <span class="mono">DATE</span>, <span class="mono">DECIMAL(3,2)</span> (también vale DECIMAL(4,2)), <span class="mono">BIT</span>.</p>
+            <div class="code"><pre><span class="kw">CREATE DATABASE</span> academia_db;
+<span class="kw">GO</span>
+<span class="kw">USE</span> academia_db;
+<span class="kw">GO</span>
+<span class="kw">CREATE TABLE</span> estudiantes (
+    id               <span class="kw">INT IDENTITY</span>(<span class="num">1</span>,<span class="num">1</span>),
+    nombre           <span class="kw">VARCHAR</span>(<span class="num">100</span>),
+    correo           <span class="kw">VARCHAR</span>(<span class="num">120</span>),
+    fecha_nacimiento <span class="kw">DATE</span>,
+    promedio         <span class="kw">DECIMAL</span>(<span class="num">3</span>,<span class="num">2</span>),
+    activo           <span class="kw">BIT</span>
+);</pre></div>
+            <p>Verifica con <span class="mono">EXEC sp_columns 'estudiantes';</span> y compáralo con tu ficha.</p>
+          </div>
+        </details>
+      </div>
+    </article>
+
+    <!-- E4 · RETO -->
+    <article class="act a4">
+      <div class="act-head"><span class="act-num">E4</span><h3>🏆 Reto: el refugio “Patitas”, de cero a tabla viva</h3><span class="mini-time">⏱ 35 min · parejas</span></div>
+      <div class="act-body">
+        <p><em>“El refugio Patitas necesita registrar sus mascotas: un código automático para cada una, su nombre, la especie, la fecha de nacimiento, el peso en kilogramos (con decimales), si ya está vacunada y la fecha en que llegó al refugio.”</em></p>
+        <p><strong>Sigue estos 5 pasos y guarda cada evidencia en tu archivo .sql:</strong></p>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Diseña la ficha</h4><p>Lista los 7 campos y decide el tipo SQL Server de cada uno (escríbelo como comentario en tu script).</p></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Crea la estructura</h4><p><span class="mono">refugio_db</span> + tabla <span class="mono">mascotas</span>, con todo y sus <span class="mono">GO</span>.</p></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Verifica</h4><p>Ejecuta <span class="mono">EXEC sp_columns 'mascotas';</span> y comprueba que coincide con tu ficha.</p></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><h4>Prueba de vida</h4><p>Inserta dos mascotas (recuerda: sin la columna id; BIT con 1 o 0; fechas entre comillas simples).</p></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><h4>Muestra el resultado</h4><p><span class="mono">SELECT * FROM mascotas;</span> — los id deben aparecer como 1 y 2, generados solos.</p></div></div>
+        <div class="answer">✏️ Espacio de borrador: ficha de tipos y script.</div>
+        <details class="qa"><summary>💡 Pista</summary><div><p>Peso con decimales → DECIMAL(5,2) alcanza hasta 999.99 kg. Dos fechas distintas (nacimiento y llegada) → dos campos DATE. ¿Vacunada? → BIT.</p></div></details>
+        <details class="qa sol"><summary>🔍 Solución completa</summary>
+          <div>
+            <div class="code"><pre><span class="cm">-- Paso 1 y 2: estructura</span>
+<span class="kw">CREATE DATABASE</span> refugio_db;
+<span class="kw">GO</span>
+<span class="kw">USE</span> refugio_db;
+<span class="kw">GO</span>
+<span class="kw">CREATE TABLE</span> mascotas (
+    id               <span class="kw">INT IDENTITY</span>(<span class="num">1</span>,<span class="num">1</span>),  <span class="cm">-- código automático</span>
+    nombre           <span class="kw">VARCHAR</span>(<span class="num">60</span>),
+    especie          <span class="kw">VARCHAR</span>(<span class="num">40</span>),
+    fecha_nacimiento <span class="kw">DATE</span>,
+    peso_kg          <span class="kw">DECIMAL</span>(<span class="num">5</span>,<span class="num">2</span>),
+    vacunada         <span class="kw">BIT</span>,
+    fecha_ingreso    <span class="kw">DATE</span>
+);
+
+<span class="cm">-- Paso 3: verificar</span>
+<span class="kw">EXEC</span> sp_columns <span class="str">'mascotas'</span>;
+
+<span class="cm">-- Paso 4: prueba de vida</span>
+<span class="kw">INSERT INTO</span> mascotas (nombre, especie, fecha_nacimiento, peso_kg, vacunada, fecha_ingreso)
+<span class="kw">VALUES</span> (<span class="str">'Firulais'</span>, <span class="str">'Perro'</span>, <span class="str">'2023-04-10'</span>, <span class="num">12.5</span>, <span class="num">1</span>, <span class="str">'2026-08-01'</span>);
+
+<span class="kw">INSERT INTO</span> mascotas (nombre, especie, fecha_nacimiento, peso_kg, vacunada, fecha_ingreso)
+<span class="kw">VALUES</span> (<span class="str">'Misifú'</span>, <span class="str">'Gato'</span>, <span class="str">'2024-11-02'</span>, <span class="num">3.8</span>, <span class="num">0</span>, <span class="str">'2026-09-05'</span>);
+
+<span class="cm">-- Paso 5: ver el resultado</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> mascotas;</pre></div>
+            <p>Resultado esperado: 2 filas con id 1 y 2 asignados por IDENTITY. Si Firulais llega a vacunarse, su BIT cambiará… pero eso lo haremos con UPDATE en BD·107. 😉</p>
+          </div>
+        </details>
+
+        <h3 style="font-size:1.05rem;margin-top:1.4rem">Rúbrica del taller</h3>
+        <div class="table-wrap">
+          <table class="data small rubric">
+            <thead><tr><th>Criterio</th><th>En proceso (1–2)</th><th>Logrado (3–4)</th><th>Destacado (5)</th></tr></thead>
+            <tbody>
+              <tr><td>Clasifica las familias de SQL</td><td>Confunde DDL con DML.</td><td>Clasifica bien la mayoría.</td><td>Explica el orden DDL → DML → DQL.</td></tr>
+              <tr><td>Detecta errores de sintaxis</td><td>Encuentra 1–2 errores.</td><td>Encuentra los 5.</td><td>Los explica y corrige el script completo.</td></tr>
+              <tr><td>Elige tipos de dato correctos</td><td>Usa VARCHAR para todo.</td><td>Asigna tipos adecuados.</td><td>Justifica cada elección (DECIMAL para dinero, BIT para banderas…).</td></tr>
+              <tr><td>Construye y verifica en SSMS</td><td>Requiere ayuda para ejecutar.</td><td>Crea base y tabla, verifica con sp_columns.</td><td>Además inserta datos de prueba y muestra resultados.</td></tr>
+              <tr><td>Buenas prácticas</td><td>No guarda el archivo .sql.</td><td>Guarda su script con nombre claro.</td><td>Comenta su script y usa nombres con convención.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </article>
+
+    <!-- AUTOEVALUACIÓN -->
+    <h3 style="margin-top:2.5rem">✅ Autoevaluación del aprendiz</h3>
+    <p>Marca con honestidad y suma tus ✔:</p>
+    <ul class="tick">
+      <li>Explico la diferencia entre el motor (SQL Server) y el cliente (SSMS).</li>
+      <li>Sé ejecutar una consulta y leer las pestañas Results y Messages.</li>
+      <li>Ubico cada comando en su familia: DDL, DML, DQL, DCL o TCL.</li>
+      <li>Aplico las reglas para nombrar bases de datos y tablas.</li>
+      <li>Creo una base de datos con CREATE DATABASE y entro con USE.</li>
+      <li>Entiendo qué hace GO y por qué va después de CREATE DATABASE.</li>
+      <li>Creo una tabla eligiendo bien los tipos (DECIMAL para dinero, BIT para sí/no).</li>
+      <li>Verifico una estructura con sp_columns y sé qué hace IDENTITY.</li>
+    </ul>
+    <div class="score-note">
+      <span class="s1">7–8 ✔ ¡Listo para BD·104: restricciones!</span>
+      <span class="s2">4–6 ✔ Repite el E3 hasta que salga a la primera</span>
+      <span class="s3">0–3 ✔ Vuelve a la Unidad 01 con tu instructor(a)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CHULETA ═══════════ -->
+<section id="chuleta" class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">§</span>
+      <h2 class="h2">Chuleta de esta entrega (para pegar en el cuaderno)</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Comando</th><th>¿Para qué?</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">CREATE DATABASE</td><td>Crear una base de datos.</td><td class="mono">CREATE DATABASE tienda_db;</td></tr>
+          <tr><td class="mono">USE</td><td>Entrar en una base para trabajar en ella.</td><td class="mono">USE tienda_db;</td></tr>
+          <tr><td class="mono">GO</td><td>Separar lotes en SSMS: “ejecuta lo de arriba ya”.</td><td class="mono">CREATE DATABASE x; GO</td></tr>
+          <tr><td class="mono">CREATE TABLE</td><td>Crear una tabla con sus columnas y tipos.</td><td class="mono">CREATE TABLE productos (...);</td></tr>
+          <tr><td class="mono">INT IDENTITY(1,1)</td><td>Columna numérica que el motor llena sola.</td><td class="mono">id INT IDENTITY(1,1)</td></tr>
+          <tr><td class="mono">EXEC sp_columns</td><td>Ver las columnas de una tabla.</td><td class="mono">EXEC sp_columns 'productos';</td></tr>
+          <tr><td class="mono">EXEC sp_help</td><td>Ver la ficha completa de una tabla.</td><td class="mono">EXEC sp_help 'productos';</td></tr>
+          <tr><td class="mono">ALTER TABLE ... ADD</td><td>Agregar una columna a una tabla existente.</td><td class="mono">ALTER TABLE productos ADD descripcion VARCHAR(150);</td></tr>
+          <tr><td class="mono">DROP TABLE IF EXISTS</td><td>Borrar una tabla (si existe).</td><td class="mono">DROP TABLE IF EXISTS productos;</td></tr>
+          <tr><td class="mono">DROP DATABASE</td><td>Borrar una base completa (¡irreversible!).</td><td class="mono">USE master; GO DROP DATABASE tienda_db;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note tip"><span class="tag">🧭 Reglas exprés de tipos</span>Dinero → <span class="mono">DECIMAL(10,2)</span> · fechas sin hora → <span class="mono">DATE</span> · fechas con hora → <span class="mono">DATETIME2</span> · sí/no → <span class="mono">BIT</span> · textos → <span class="mono">VARCHAR(n)</span> · códigos automáticos → <span class="mono">INT IDENTITY(1,1)</span>.</div>
+    <div class="note"><span class="tag">🔜 Próxima entrega</span>BD·104: nuestras tablas crecerán con <strong>reglas de integridad</strong> — PRIMARY KEY oficial, UNIQUE, NOT NULL, DEFAULT y CHECK. La estructura se vuelve a prueba de errores.</div>
+  </div>
+</section>
+
+<!-- ═══════════ GLOSARIO ═══════════ -->
+<section class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">§</span>
+      <h2 class="h2">Mini glosario de esta entrega</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <dl class="gloss">
+      <div class="term"><dt>Motor de base de datos</dt><dd>Software que almacena los datos y ejecuta las instrucciones (aquí: SQL Server).</dd></div>
+      <div class="term"><dt>SSMS</dt><dd>SQL Server Management Studio: el cliente gráfico para escribir consultas y administrar el servidor.</dd></div>
+      <div class="term"><dt>Script</dt><dd>Archivo de texto con instrucciones SQL, normalmente con extensión .sql.</dd></div>
+      <div class="term"><dt>Lote (batch) / GO</dt><dd>Grupo de instrucciones que se envían juntas al motor; GO marca el fin de un lote en SSMS.</dd></div>
+      <div class="term"><dt>Esquema dbo</dt><dd>“Carpeta” predeterminada donde se crean las tablas en SQL Server (dbo = database owner).</dd></div>
+      <div class="term"><dt>IDENTITY(inicio, incremento)</dt><dd>Propiedad que hace que SQL Server genere automáticamente valores numéricos únicos para una columna.</dd></div>
+      <div class="term"><dt>base master</dt><dd>Base de datos del sistema; se usa como “punto neutro”, por ejemplo antes de borrar otra base.</dd></div>
+      <div class="term"><dt>sp_columns / sp_help</dt><dd>Procedimientos almacenados del sistema que describen la estructura de una tabla.</dd></div>
+    </dl>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="foot-brand">BD·103 — Tu primera base de datos (SQL Server)</div>
+      <small>Fase 2 · Construir (DDL) del tutorial de bases de datos · Versión 1.0 · 2026 · Permitida su reproducción con fines educativos citando la fuente.<br>Construido solo con HTML y CSS — cero JavaScript. También puedes imprimirlo (Ctrl/Cmd + P).</small>
+    </div>
+    <div class="top-link"><a href="#inicio">↑ Volver arriba</a></div>
+  </div>
+</footer>
+</body>
+</html>

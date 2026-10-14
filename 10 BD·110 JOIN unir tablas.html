@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tutorial de INNER JOIN, LEFT JOIN y JOINs múltiples en SQL Server con 35 ejercicios prácticos.">
+<title>JOIN: unir tablas · BD·110 · SQL Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600;700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0e2b25; --ink-soft:#3c5a52;
+  --paper:#f2f5ef; --card:#ffffff;
+  --teal:#0f7f68; --teal-deep:#0a5747;
+  --amber:#ffb63d; --amber-deep:#a15c00;
+  --coral:#ff6d5a; --sky:#3f7fe0;
+  --line:#d9e1d7;
+  --shadow:8px 8px 0 rgba(14,43,37,.14);
+  --shadow-sm:4px 4px 0 rgba(14,43,37,.14);
+  --display:'Bricolage Grotesque','Arial Black',sans-serif;
+  --body:'Public Sans','Segoe UI',sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body);color:var(--ink);line-height:1.65;
+  background:
+    radial-gradient(900px 420px at 85% -80px, rgba(15,127,104,.16), transparent 60%),
+    radial-gradient(700px 400px at -10% 35%, rgba(255,182,61,.14), transparent 55%),
+    linear-gradient(rgba(14,43,37,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14,43,37,.05) 1px, transparent 1px),
+    var(--paper);
+  background-size:auto,auto,34px 34px,34px 34px,auto;
+}
+section{scroll-margin-top:84px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 1.25rem}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:8px;top:8px;background:var(--amber);color:var(--ink);padding:.5rem .9rem;z-index:99;border-radius:8px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#e9f2ec;border-bottom:4px solid var(--amber);display:flex;align-items:center;flex-wrap:wrap;gap:.6rem 1.4rem;padding:.65rem 1.25rem}
+.brand{display:flex;align-items:center;gap:.6rem;color:#fff;text-decoration:none;font-family:var(--display);font-weight:800;font-size:1.05rem}
+.brand-badge{background:var(--amber);color:var(--ink);font-family:var(--mono);font-weight:700;padding:.18rem .5rem;border-radius:8px;box-shadow:2px 2px 0 rgba(0,0,0,.4)}
+.brand small{font-family:var(--mono);font-weight:400;font-size:.7rem;color:#9fc3b6;letter-spacing:.12em;text-transform:uppercase}
+.topbar nav{display:flex;flex-wrap:wrap;gap:.15rem;margin-left:auto}
+.topbar nav a{color:#dcebe3;text-decoration:none;font-size:.86rem;font-weight:600;padding:.35rem .75rem;border-radius:999px;transition:background .2s,color .2s}
+.topbar nav a:hover,.topbar nav a:focus-visible{background:rgba(255,182,61,.2);color:#ffd98a}
+
+.hero{padding:3rem 0 2rem}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:2rem}
+.kicker{font-family:var(--mono);font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-deep);font-weight:600;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
+.blink{display:inline-block;width:.6em;height:1.1em;background:var(--teal);animation:blink 1.1s steps(2) infinite;vertical-align:-.15em}
+@keyframes blink{50%{opacity:0}}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,4.8vw,3.8rem);line-height:1.02;margin-bottom:1.1rem}
+.hl{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%);padding:0 .08em}
+.lead{font-size:1.12rem;color:var(--ink-soft);max-width:44rem;margin-bottom:1.4rem}
+.meta-chips{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1rem}
+.chip{font-family:var(--mono);font-size:.74rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;background:#fff;padding:.3rem .75rem;box-shadow:var(--shadow-sm)}
+.trail{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:1.6rem;max-width:44rem}
+.trail span{font-family:var(--mono);font-size:.66rem;font-weight:700;border-radius:8px;padding:.22rem .55rem;border:1.5px solid var(--ink)}
+.trail .done{background:#d9f2e6;color:var(--teal-deep)}
+.trail .here{background:var(--amber);color:var(--ink);box-shadow:var(--shadow-sm)}
+.trail .next{background:#fff;color:var(--ink-soft);opacity:.85}
+.ficha{display:inline-block;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:.8rem 1.1rem;font-size:.86rem;box-shadow:var(--shadow-sm)}
+.ficha strong{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--teal-deep)}
+.ficha .blank{display:inline-block;min-width:9rem;border-bottom:2px dotted var(--ink-soft)}
+
+.ticker{overflow:hidden;background:var(--ink);color:#e9f2ec;border-block:3px solid var(--amber);margin-top:2rem}
+.ticker-track{display:flex;width:max-content;animation:scrollX 32s linear infinite;padding:.6rem 0;font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;white-space:nowrap}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.tick-set{display:flex;gap:2.2rem;padding-right:2.2rem}
+.tick-set b{color:var(--amber)}
+@keyframes scrollX{to{transform:translateX(-50%)}}
+
+.unit{padding:3rem 0}
+.unit-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:.4rem 1.1rem;border-bottom:3px solid var(--ink);padding-bottom:.8rem;margin-bottom:1.8rem}
+.unit-num{font-family:var(--display);font-weight:800;font-size:clamp(2.4rem,5vw,3.4rem);line-height:1;color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.u2 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber-deep)}
+.u3 .unit-num{color:rgba(255,109,90,.15);-webkit-text-stroke:2.4px var(--coral)}
+.u4 .unit-num{color:rgba(63,127,224,.15);-webkit-text-stroke:2.4px var(--sky)}
+.u5 .unit-num{color:rgba(255,182,61,.2);-webkit-text-stroke:2.4px var(--amber)}
+.u6 .unit-num{color:rgba(15,127,104,.14);-webkit-text-stroke:2.4px var(--teal)}
+.unit-time{font-family:var(--mono);font-size:.72rem;font-weight:600;border:2px solid var(--ink);border-radius:999px;padding:.25rem .7rem;background:#fff;margin-left:auto}
+.unit h2{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,3.2vw,2.2rem);line-height:1.1;margin-bottom:1rem}
+.unit h3{font-family:var(--display);font-weight:800;font-size:1.3rem;margin:2.2rem 0 .8rem}
+.unit h4{font-family:var(--display);font-weight:800;font-size:1.1rem;margin:1.6rem 0 .6rem;color:var(--teal-deep)}
+.unit p{margin-bottom:.9rem;max-width:64rem}
+.unit ul,.unit ol{margin:0 0 1rem 1.4rem}
+.unit li{margin-bottom:.4rem}
+
+.note{border-left:6px solid var(--amber);background:#fff8ea;border-radius:0 12px 12px 0;padding:1rem 1.2rem;margin:1.2rem 0;box-shadow:var(--shadow-sm);max-width:64rem}
+.note.tip{border-left-color:var(--teal);background:#eafaf3}
+.note.warn{border-left-color:var(--coral);background:#fff1ee}
+.note .tag{font-family:var(--mono);font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;display:block;margin-bottom:.3rem;color:var(--amber-deep)}
+.note.tip .tag{color:var(--teal-deep)}.note.warn .tag{color:#c2402f}
+.def-big{font-family:var(--display);font-weight:700;font-size:1.2rem;line-height:1.45;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:1.4rem 1.6rem;box-shadow:var(--shadow);margin:1.4rem 0;max-width:60rem;position:relative}
+.def-big::before{content:"“";position:absolute;top:-1.4rem;left:1rem;font-family:var(--display);font-size:4rem;color:var(--amber);line-height:1}
+.def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.9) 60%)}
+
+.table-wrap{overflow-x:auto;border:2px solid var(--ink);border-radius:12px;box-shadow:var(--shadow);background:#fff;margin:1.2rem 0;max-width:64rem}
+table.data{width:100%;border-collapse:collapse;font-size:.88rem}
+table.data th{background:var(--teal-deep);color:#fff;text-align:left;padding:.55rem .8rem;font-size:.8rem;letter-spacing:.03em;white-space:nowrap}
+table.data td{padding:.5rem .8rem;border-top:1px solid var(--line);vertical-align:top}
+table.data tbody tr:nth-child(even) td{background:#f6faf6}
+table.data tbody tr:hover td{background:#eef7f0}
+table.data.small{font-size:.8rem}
+table.data.small td,table.data.small th{padding:.4rem .6rem}
+table.data.flat{font-size:.7rem}
+table.data.flat td,table.data.flat th{padding:.35rem .5rem;white-space:nowrap}
+.mono{font-family:var(--mono);font-size:.84em}
+
+.rel-flow{display:flex;align-items:stretch;gap:.6rem;flex-wrap:wrap;margin:1.4rem 0}
+.rel-box{border:2px solid var(--ink);border-radius:10px;background:#fff;min-width:135px;box-shadow:var(--shadow-sm);overflow:hidden;transition:transform .2s}
+.rel-box:hover{transform:translateY(-4px)}
+.rel-box h4{background:var(--teal-deep);color:#fff;padding:.4rem .7rem;font-family:var(--mono);font-size:.74rem;letter-spacing:.05em}
+.rel-box.alt h4{background:var(--coral)}
+.rel-box.mid h4{background:var(--amber);color:var(--ink)}
+.rel-box.sky h4{background:var(--sky)}
+.rel-box ul{list-style:none;padding:.5rem .7rem;font-family:var(--mono);font-size:.7rem}
+.rel-box li{padding:.12rem 0;border-bottom:1px dashed var(--line)}
+.rel-box li:last-child{border-bottom:none}
+.rel-arrow{align-self:center;text-align:center;color:var(--coral);font-weight:800;font-size:1.3rem;line-height:1}
+.rel-arrow small{display:block;font-family:var(--mono);font-size:.58rem;color:var(--ink-soft);font-weight:600}
+.pk,.fk{font-family:var(--mono);font-size:.62rem;font-weight:700;border-radius:6px;padding:.1rem .4rem;border:1.5px solid var(--ink)}
+.pk{background:var(--amber);color:#3a2b00}
+.fk{background:var(--coral);color:#fff}
+
+.example-label{display:inline-block;font-family:var(--mono);font-size:.7rem;font-weight:700;background:var(--teal);color:#fff;padding:.2rem .6rem;border-radius:6px;margin-bottom:.5rem}
+.example-label.ex2{background:var(--sky)}
+.example-label.ex3{background:var(--coral)}
+.example-label.ex4{background:var(--amber-deep)}
+
+.qa{border:2px solid var(--ink);border-radius:12px;background:#fff;margin:1rem 0;box-shadow:var(--shadow-sm);max-width:64rem}
+.qa summary{cursor:pointer;padding:.8rem 1.1rem;font-weight:700;display:flex;align-items:center;gap:.6rem;list-style:none}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::before{content:"▸";color:var(--teal);font-size:1.1rem;transition:transform .25s}
+.qa[open] summary::before{transform:rotate(90deg)}
+.qa summary:hover{background:#f4faf6}
+.qa>div{padding:.2rem 1.1rem 1.1rem 2.3rem;border-top:2px dashed var(--line)}
+.qa.sol summary::before{color:var(--amber-deep)}
+
+.code{background:#0f2320;color:#dcefe6;border:2px solid var(--ink);border-radius:12px;overflow:hidden;margin:1.2rem 0;box-shadow:var(--shadow);max-width:64rem}
+.code-bar{display:flex;align-items:center;gap:.4rem;padding:.5rem .9rem;background:#0a1a17;border-bottom:1px solid #1e3a34;font-family:var(--mono);font-size:.72rem;color:#9db8ae}
+.code pre{margin:0;padding:1rem 1.2rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;line-height:1.7}
+.kw{color:#ffcf7d;font-weight:600}
+.str{color:#8ee6ad}
+.num{color:#7cc7ff}
+.cm{color:#7fa396;font-style:italic}
+
+.dark{background:var(--ink);color:#e9f2ec}
+.dark .unit-head{border-bottom-color:var(--amber)}
+.dark .unit-time{background:#16352e;color:#ffd98a;border-color:#ffd98a}
+.dark p{color:#cfe2d9}
+.dark h3{color:#ffe1a8}
+.dark h4{color:#ffd98a}
+.dark .note{background:#16352e;border-left-color:var(--amber);color:#e9f2ec}
+.dark .note .tag{color:var(--amber)}
+.dark table.data{color:var(--ink)}
+.dark .table-wrap{color:var(--ink);box-shadow:8px 8px 0 rgba(0,0,0,.45);border-color:#3a5a52}
+.dark .rel-box{background:#fff}
+.dark .rel-arrow small{color:#cfe2d9}
+.dark .qa{background:#16352e;border-color:#3a5a52;color:#e9f2ec}
+.dark .qa summary:hover{background:#1d4038}
+.dark .qa>div{border-top-color:#3a5a52;color:#cfe2d9}
+.dark .def-big{background:#16352e;color:#e9f2ec;border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+.dark .def-big strong{background:linear-gradient(transparent 60%, rgba(255,182,61,.55) 60%)}
+.dark .code{border-color:#3a5a52;box-shadow:8px 8px 0 rgba(0,0,0,.45)}
+.dark .example-label{background:#3a5a52}
+
+.ex-block{border:2px solid var(--ink);border-radius:12px;background:#fff;margin:1.2rem 0;box-shadow:var(--shadow-sm);overflow:hidden;max-width:64rem}
+.ex-head{background:var(--paper);padding:.7rem 1.1rem;border-bottom:2px solid var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:.6rem}
+.ex-head .ex-num{font-family:var(--display);font-weight:800;font-size:1rem;background:var(--teal);color:#fff;border-radius:8px;padding:.15rem .6rem}
+.ex-head .ex-level{font-family:var(--mono);font-size:.68rem;font-weight:700;border-radius:6px;padding:.15rem .5rem;border:1.5px solid var(--ink)}
+.ex-level.easy{background:#d9f2e6;color:var(--teal-deep)}
+.ex-level.med{background:#fff3d9;color:var(--amber-deep)}
+.ex-level.hard{background:#ffd9d3;color:#8a2c1e}
+.ex-body{padding:1rem 1.1rem}
+.ex-body p{margin-bottom:.6rem}
+
+footer{background:var(--ink);color:#cfe2d9;margin-top:4rem;border-top:4px solid var(--amber)}
+footer .wrap{padding-top:2.5rem;padding-bottom:2.5rem;display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-start}
+footer .foot-brand{font-family:var(--display);font-weight:800;font-size:1.3rem;color:#fff}
+footer small{display:block;margin-top:.4rem;font-family:var(--mono);font-size:.72rem;color:#9fc3b6;max-width:34rem;line-height:1.7}
+footer .top-link{align-self:center}
+footer .top-link a{color:#ffd98a;text-decoration:none;font-family:var(--mono);font-size:.85rem;border:2px solid #ffd98a;border-radius:999px;padding:.5rem 1.1rem;transition:background .2s}
+footer .top-link a:hover{background:rgba(255,217,138,.15)}
+
+@media (max-width:940px){
+  .topbar nav{margin-left:0;width:100%;overflow-x:auto}
+  .rel-flow{flex-direction:column;align-items:stretch}
+  .rel-arrow{transform:rotate(90deg);padding:.4rem 0}
+}
+@media print{
+  .topbar,.ticker,.top-link{display:none!important}
+  body{background:#fff}
+  .table-card,.terminal,.code,.qa,.ex-block{box-shadow:none;break-inside:avoid}
+  .unit,.hero{padding:1.2rem 0}
+  .code pre{white-space:pre-wrap}
+  a{color:inherit;text-decoration:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="topbar">
+  <a class="brand" href="#inicio"><span class="brand-badge">BD·110</span> JOIN: unir tablas <small>· SQL Server</small></a>
+  <nav aria-label="Secciones del tutorial">
+    <a href="#porque">¿Por qué JOIN?</a>
+    <a href="#inner">INNER JOIN</a>
+    <a href="#alias">Aliases</a>
+    <a href="#left">LEFT JOIN</a>
+    <a href="#multi">Multi JOIN</a>
+    <a href="#taller">35 Ejercicios</a>
+    <a href="#chuleta">Chuleta</a>
+  </nav>
+</header>
+
+<main id="contenido">
+
+<!-- ═══════════ PORTADA ═══════════ -->
+<section id="inicio" class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker"><span class="blink"></span> Fase 4 · Consultar avanzado · Motor: SQL Server</p>
+      <h1>El puente entre tablas:<br><span class="hl">JOIN.</span></h1>
+      <p class="lead">En BD·105 y BD·106 aprendiste a <strong>conectar tablas con FOREIGN KEY</strong>. Hoy aprenderás a <strong>consultar esas tablas juntas</strong>: INNER JOIN para las que coinciden, LEFT JOIN para las que no, y cómo unir 3, 4 o 5 tablas en una sola consulta. Todo sobre las 5 tablas de la <strong>Veterinaria Huellitas</strong> que construiste en BD·109.</p>
+      <div class="meta-chips">
+        <span class="chip">⏱ ≈ 5 sesiones</span>
+        <span class="chip">🗄️ Motor: SQL Server</span>
+        <span class="chip">🔗 Tema: INNER/LEFT JOIN</span>
+        <span class="chip">💪 35 ejercicios</span>
+      </div>
+      <div class="trail" aria-label="Progreso del curso">
+        <span class="done">BD·101-108 ✔ DDL + DML + SELECT</span>
+        <span class="done">BD·109 ✔ Proyecto integrador</span>
+        <span class="here">BD·110 ● Estás aquí</span>
+        <span class="next">BD·111 Subconsultas…</span>
+      </div>
+      <div class="ficha" style="margin-top:1rem">
+        <strong>Ficha / Grupo:</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Instructor(a):</strong> <span class="blank">&nbsp;</span><br>
+        <strong>Servidor SQL:</strong> <span class="blank">&nbsp;</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGRAMA DE REFERENCIA -->
+  <div class="wrap" style="margin-top:2rem">
+    <h3 style="font-family:var(--display);font-size:1.2rem;margin-bottom:.8rem">Tus 5 tablas, el terreno de juego de esta entrega</h3>
+    <div class="rel-flow">
+      <div class="rel-box"><h4>DUEÑOS</h4><ul><li><span class="pk">PK</span> id</li><li>nombre</li><li>telefono</li><li>correo</li></ul></div>
+      <div class="rel-arrow">1:N<small>dueño_id</small></div>
+      <div class="rel-box alt"><h4>MASCOTAS</h4><ul><li><span class="pk">PK</span> id</li><li>nombre</li><li>especie</li><li>edad</li><li><span class="fk">FK</span> dueño_id</li></ul></div>
+      <div class="rel-arrow">1:N<small>mascota_id</small></div>
+      <div class="rel-box mid"><h4>CITAS</h4><ul><li><span class="pk">PK</span> id</li><li>fecha</li><li><span class="fk">FK</span> mascota_id</li><li><span class="fk">FK</span> servicio_id</li><li><span class="fk">FK</span> veterinario_id</li></ul></div>
+      <div class="rel-arrow">N:1<small>servicio_id</small></div>
+      <div class="rel-box sky"><h4>SERVICIOS</h4><ul><li><span class="pk">PK</span> id</li><li>nombre</li><li>precio</li></ul></div>
+    </div>
+    <div class="rel-flow" style="margin-top:-.4rem">
+      <div style="flex:1"></div>
+      <div style="flex:1"></div>
+      <div style="flex:1"></div>
+      <div class="rel-arrow" style="align-self:center">N:1<small>veterinario_id</small></div>
+      <div class="rel-box sky"><h4>VETERINARIOS</h4><ul><li><span class="pk">PK</span> id</li><li>nombre</li><li>especialidad</li></ul></div>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <div class="tick-set">
+        <span><b>INNER JOIN</b> solo coincidencias</span><span><b>LEFT JOIN</b> todo el lado izquierdo</span><span><b>ON</b> une por la FK</span><span><b>AS</b> crea alias</span><span>tabla1 JOIN tabla2 ON ...</span><span>JOIN múltiples en cascada</span><span>cada FK es un puente que puedes cruzar</span><span>sin ON, producto cartesiano</span><span>NULL = sin coincidencia</span>
+      </div>
+      <div class="tick-set">
+        <span><b>INNER JOIN</b> solo coincidencias</span><span><b>LEFT JOIN</b> todo el lado izquierdo</span><span><b>ON</b> une por la FK</span><span><b>AS</b> crea alias</span><span>tabla1 JOIN tabla2 ON ...</span><span>JOIN múltiples en cascada</span><span>cada FK es un puente que puedes cruzar</span><span>sin ON, producto cartesiano</span><span>NULL = sin coincidencia</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 01 · POR QUÉ ═══════════ -->
+<section id="porque" class="unit u1">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">01</span>
+      <h2>¿Por qué necesitamos JOIN?</h2>
+      <span class="unit-time">⏱ 15 min lectura</span>
+    </div>
+
+    <p>En BD·109 normalizaste la tabla plana de la veterinaria en 5 tablas separadas. Pero ahora, cuando quieres responder preguntas del mundo real, necesitas <strong>ver datos de varias tablas al mismo tiempo</strong>. Por ejemplo:</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Pregunta de negocio</th><th>Tablas involucradas</th></tr></thead>
+        <tbody>
+          <tr><td>"¿Qué mascotas se atendieron el 2026-09-01?"</td><td>CITAS + MASCOTAS</td></tr>
+          <tr><td>"¿Qué dueño tiene la mascota Firulais?"</td><td>MASCOTAS + DUEÑOS</td></tr>
+          <tr><td>"¿Cuánto ganó la veterinaria con las citas del día?"</td><td>CITAS + SERVICIOS</td></tr>
+          <tr><td>"¿Qué veterinario atendió a Firulais?"</td><td>CITAS + VETERINARIOS + MASCOTAS</td></tr>
+          <tr><td>"Nombre del dueño, nombre de la mascota, servicio y veterinario"</td><td>¡Las 5 tablas!</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="def-big"><strong>JOIN</strong> es la operación que une dos o más tablas en una sola consulta, usando como puente las <strong>FOREIGN KEY</strong> que ya creaste. Cada FK que definiste en BD·105 y BD·106 es un puente que ahora puedes cruzar con un JOIN.</div>
+
+    <h3>Los dos tipos principales de JOIN</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Tipo</th><th>Qué devuelve</th><th>Cuándo usarlo</th></tr></thead>
+        <tbody>
+          <tr><td class="mono"><strong>INNER JOIN</strong></td><td>Solo las filas que <strong>coinciden</strong> en ambas tablas.</td><td>Cuando solo te interesan los datos que tienen correspondencia en ambas tablas.</td></tr>
+          <tr><td class="mono"><strong>LEFT JOIN</strong></td><td><strong>Todas</strong> las filas de la tabla izquierda, coincidan o no con la derecha. Los que no coinciden aparecen con NULL.</td><td>Cuando quieres ver también los registros sin correspondencia (ej.: dueños sin mascotas).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note tip"><span class="tag">💡 Analogía</span>Piensa en dos listas: una de estudiantes y una de notas. <strong>INNER JOIN</strong> te muestra solo los estudiantes con nota. <strong>LEFT JOIN</strong> te muestra todos los estudiantes, incluso los que aún no tienen nota (quedan con NULL).</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 02 · INNER JOIN ═══════════ -->
+<section id="inner" class="unit u2">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">02</span>
+      <h2>INNER JOIN: las coincidencias</h2>
+      <span class="unit-time">⏱ 30 min práctica</span>
+    </div>
+
+    <h3>La sintaxis básica</h3>
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; sintaxis_inner.sql</div>
+      <pre><span class="kw">SELECT</span> columnas
+<span class="kw">FROM</span> tabla_izquierda
+<span class="kw">INNER JOIN</span> tabla_derecha
+    <span class="kw">ON</span> tabla_izquierda.fk = tabla_derecha.pk;</pre>
+    </div>
+    <p>La palabra <span class="mono">INNER</span> es opcional: <span class="mono">JOIN</span> a secas significa <span class="mono">INNER JOIN</span>.</p>
+
+    <h3>Ejemplos con la veterinaria</h3>
+
+    <span class="example-label">Ejemplo 1: mascotas con el nombre de su dueño</span>
+    <div class="code"><pre><span class="kw">SELECT</span> mascotas.nombre <span class="kw">AS</span> mascota,
+       duenos.nombre   <span class="kw">AS</span> dueño
+<span class="kw">FROM</span> mascotas
+<span class="kw">INNER JOIN</span> duenos <span class="kw">ON</span> mascotas.dueño_id = duenos.id;</pre></div>
+    <p>Resultado esperado: 5 filas, una por mascota, mostrando Firulais → Ana Torres, Misifú → Bruno Díaz, Rocky → Carla Vega, Luna → Ana Torres, Max → Diana Ruiz.</p>
+
+    <span class="example-label ex2">Ejemplo 2: citas con el nombre de la mascota</span>
+    <div class="code"><pre><span class="kw">SELECT</span> citas.fecha,
+       mascotas.nombre <span class="kw">AS</span> mascota
+<span class="kw">FROM</span> citas
+<span class="kw">INNER JOIN</span> mascotas <span class="kw">ON</span> citas.mascota_id = mascotas.id;</pre></div>
+    <p>Resultado: 8 filas (una por cita) mostrando el nombre real de la mascota en lugar de un id.</p>
+
+    <span class="example-label ex3">Ejemplo 3: citas con el nombre del servicio y su precio</span>
+    <div class="code"><pre><span class="kw">SELECT</span> citas.fecha,
+       servicios.nombre <span class="kw">AS</span> servicio,
+       servicios.precio
+<span class="kw">FROM</span> citas
+<span class="kw">INNER JOIN</span> servicios <span class="kw">ON</span> citas.servicio_id = servicios.id;</pre></div>
+
+    <span class="example-label ex4">Ejemplo 4: citas con el nombre del veterinario</span>
+    <div class="code"><pre><span class="kw">SELECT</span> citas.fecha,
+       veterinarios.nombre <span class="kw">AS</span> veterinario,
+       veterinarios.especialidad
+<span class="kw">FROM</span> citas
+<span class="kw">INNER JOIN</span> veterinarios <span class="kw">ON</span> citas.veterinario_id = veterinarios.id;</pre></div>
+
+    <h3>INNER JOIN con WHERE</h3>
+    <p>Puedes agregar filtros normales:</p>
+
+    <span class="example-label">Ejemplo 5: citas de un dueño específico</span>
+    <div class="code"><pre><span class="cm">-- Solo las citas de mascotas de Ana Torres</span>
+<span class="kw">SELECT</span> citas.fecha, mascotas.nombre <span class="kw">AS</span> mascota
+<span class="kw">FROM</span> citas
+<span class="kw">INNER JOIN</span> mascotas <span class="kw">ON</span> citas.mascota_id = mascotas.id
+<span class="kw">WHERE</span> mascotas.dueño_id = <span class="num">1</span>;</pre></div>
+    <p>Resultado: 3 filas (Firulais y Luna, que son de Ana).</p>
+
+    <span class="example-label ex2">Ejemplo 6: servicios que cuestan más de 40000 que se hayan prestado</span>
+    <div class="code"><pre><span class="kw">SELECT</span> DISTINCT servicios.nombre, servicios.precio
+<span class="kw">FROM</span> servicios
+<span class="kw">INNER JOIN</span> citas <span class="kw">ON</span> citas.servicio_id = servicios.id
+<span class="kw">WHERE</span> servicios.precio &gt; <span class="num">40000</span>;</pre></div>
+
+    <div class="note warn"><span class="tag">🚨 Error común: olvidar el ON</span>Si escribes <span class="mono">INNER JOIN tabla</span> sin <span class="mono">ON</span>, SQL Server hace un <strong>producto cartesiano</strong>: combina cada fila de la primera tabla con cada fila de la segunda. Con 5 mascotas y 8 citas obtendrías 40 filas sin sentido. <strong>Siempre escribe el ON.</strong></div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 03 · ALIASES ═══════════ -->
+<section id="alias" class="unit u3">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">03</span>
+      <h2>Aliases: apodos para tablas y columnas</h2>
+      <span class="unit-time">⏱ 15 min práctica</span>
+    </div>
+
+    <p>Cuando unes muchas tablas, escribir los nombres completos se vuelve pesado. Los <strong>aliases</strong> (apodos) se declaran con <span class="mono">AS</span> (que es opcional):</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; con_alias.sql</div>
+      <pre><span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota,
+       d.nombre <span class="kw">AS</span> dueño
+<span class="kw">FROM</span> mascotas m              <span class="cm">-- m es el alias de mascotas</span>
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id;  <span class="cm">-- d es el alias de duenos</span></pre>
+    </div>
+
+    <h3>Beneficios</h3>
+    <ul>
+      <li><strong>Más corto:</strong> <span class="mono">m.nombre</span> en lugar de <span class="mono">mascotas.nombre</span>.</li>
+      <li><strong>Más legible:</strong> los alias <span class="mono">m</span>, <span class="mono">d</span>, <span class="mono">c</span>, <span class="mono">s</span>, <span class="mono">v</span> son convenciones típicas para mascotas, dueños, citas, servicios y veterinarios.</li>
+      <li><strong>Obligatorio cuando auto-unas</strong> una tabla consigo misma (tema avanzado).</li>
+    </ul>
+
+    <div class="note tip"><span class="tag">💡 Convención del curso</span>De ahora en adelante usaremos alias cortos en casi todos los ejemplos. La convención recomendada: primera letra del nombre de la tabla, o dos letras si hay conflicto (por ejemplo, <span class="mono">du</span> para dueños y <span class="mono">dt</span> para detalle).</div>
+
+    <h3>Ejemplo con alias y WHERE</h3>
+    <div class="code"><pre><span class="cm">-- Mascotas de los dueños cuyo nombre empieza con A o B</span>
+<span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota, m.especie, d.nombre <span class="kw">AS</span> dueño
+<span class="kw">FROM</span> mascotas m
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">WHERE</span> d.nombre <span class="kw">LIKE</span> <span class="str">'A%'</span> <span class="kw">OR</span> d.nombre <span class="kw">LIKE</span> <span class="str">'B%'</span>;</pre></div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 04 · LEFT JOIN ═══════════ -->
+<section id="left" class="unit u4">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">04</span>
+      <h2>LEFT JOIN: incluir a los que no tienen correspondencia</h2>
+      <span class="unit-time">⏱ 25 min práctica</span>
+    </div>
+
+    <p>Con INNER JOIN solo ves las filas que coinciden. Pero ¿qué pasa si quieres ver <strong>todas las mascotas, incluso las que no han tenido citas aún</strong>? Ahí entra LEFT JOIN.</p>
+
+    <div class="code">
+      <div class="code-bar"><span class="dot r"></span><span class="dot a"></span><span class="dot v"></span>&nbsp; sintaxis_left.sql</div>
+      <pre><span class="kw">SELECT</span> columnas
+<span class="kw">FROM</span> tabla_izquierda
+<span class="kw">LEFT JOIN</span> tabla_derecha
+    <span class="kw">ON</span> tabla_izquierda.fk = tabla_derecha.pk;</pre>
+    </div>
+
+    <div class="def-big"><strong>LEFT JOIN</strong> devuelve <strong>todas las filas de la tabla izquierda</strong>, incluso las que no tienen coincidencia en la derecha. Las columnas de la derecha aparecen como <strong>NULL</strong> para las filas sin coincidencia.</div>
+
+    <h3>Ejemplos con la veterinaria</h3>
+
+    <span class="example-label">Ejemplo 1: todas las mascotas, con o sin citas</span>
+    <div class="code"><pre><span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota,
+       c.fecha
+<span class="kw">FROM</span> mascotas m
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id;</pre></div>
+    <p>Si insertaras una mascota nueva sin citas, aparecería con <span class="mono">fecha = NULL</span>. Con INNER JOIN esa mascota no aparecería en absoluto.</p>
+
+    <span class="example-label ex2">Ejemplo 2: todos los dueños, con sus mascotas (aunque no tengan)</span>
+    <div class="code"><pre><span class="kw">SELECT</span> d.nombre <span class="kw">AS</span> dueño,
+       m.nombre <span class="kw">AS</span> mascota
+<span class="kw">FROM</span> duenos d
+<span class="kw">LEFT JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id;</pre></div>
+    <p>Si agregas un dueño nuevo sin mascotas, aparecerá con mascota = NULL.</p>
+
+    <span class="example-label ex3">Ejemplo 3: dueños SIN mascotas (usando IS NULL)</span>
+    <div class="code"><pre><span class="cm">-- Solo los dueños que NO tienen mascotas</span>
+<span class="kw">SELECT</span> d.nombre
+<span class="kw">FROM</span> duenos d
+<span class="kw">LEFT JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">WHERE</span> m.id <span class="kw">IS NULL</span>;</pre></div>
+    <p>Este es un patrón clásico: LEFT JOIN + IS NULL = "dame los del lado izquierdo que no tienen correspondencia".</p>
+
+    <span class="example-label ex4">Ejemplo 4: servicios que NUNCA se han prestado</span>
+    <div class="code"><pre><span class="cm">-- Servicios sin ninguna cita registrada</span>
+<span class="kw">SELECT</span> s.nombre, s.precio
+<span class="kw">FROM</span> servicios s
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">WHERE</span> c.id <span class="kw">IS NULL</span>;</pre></div>
+
+    <h3>INNER vs LEFT JOIN visualmente</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Situación</th><th>INNER JOIN</th><th>LEFT JOIN</th></tr></thead>
+        <tbody>
+          <tr><td>Mascota con citas</td><td class="ok">✔ Aparece</td><td class="ok">✔ Aparece</td></tr>
+          <tr><td>Mascota sin citas</td><td class="no">✘ No aparece</td><td class="ok">✔ Aparece con NULL en fecha</td></tr>
+          <tr><td>Cita sin mascota (imposible con FK)</td><td class="no">✘ No existe</td><td class="no">✘ No existe</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note tip"><span class="tag">💡 ¿Cuándo usar LEFT JOIN?</span>Cuando la pregunta incluye "todos", "incluso los que no...", "sin correspondencia", "que nunca han...". Ejemplos: "todos los dueños, hayan traído mascota o no", "servicios que nunca se han prestado", "veterinarios que no han atendido ninguna cita este mes".</div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 05 · MULTI JOIN (OSCURA) ═══════════ -->
+<section id="multi" class="unit u5 dark">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">05</span>
+      <h2>JOINs múltiples: unir 3, 4, 5 tablas</h2>
+      <span class="unit-time">⏱ 30 min práctica</span>
+    </div>
+
+    <p>En la veterinaria, las preguntas más interesantes requieren datos de <strong>varias tablas a la vez</strong>. La buena noticia: puedes encadenar JOINs, uno después de otro.</p>
+
+    <div class="def-big">Cada JOIN añade una tabla al resultado. El ON siempre une la <strong>nueva tabla</strong> con alguna de las tablas que ya están en la consulta.</div>
+
+    <h3>3 tablas</h3>
+
+    <span class="example-label">Ejemplo 1: mascota + dueño + fecha de cita</span>
+    <div class="code"><pre><span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota,
+       d.nombre <span class="kw">AS</span> dueño,
+       c.fecha
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> duenos d   <span class="kw">ON</span> m.dueño_id  = d.id;</pre></div>
+
+    <span class="example-label ex2">Ejemplo 2: cita + mascota + servicio</span>
+    <div class="code"><pre><span class="kw">SELECT</span> c.fecha,
+       m.nombre <span class="kw">AS</span> mascota,
+       s.nombre <span class="kw">AS</span> servicio,
+       s.precio
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas  m <span class="kw">ON</span> c.mascota_id  = m.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id;</pre></div>
+
+    <h3>4 tablas</h3>
+
+    <span class="example-label ex3">Ejemplo 3: cita + mascota + servicio + veterinario</span>
+    <div class="code"><pre><span class="kw">SELECT</span> c.fecha,
+       m.nombre <span class="kw">AS</span> mascota,
+       s.nombre <span class="kw">AS</span> servicio,
+       v.nombre <span class="kw">AS</span> veterinario
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas     m <span class="kw">ON</span> c.mascota_id     = m.id
+<span class="kw">INNER JOIN</span> servicios    s <span class="kw">ON</span> c.servicio_id    = s.id
+<span class="kw">INNER JOIN</span> veterinarios v <span class="kw">ON</span> c.veterinario_id = v.id;</pre></div>
+
+    <h3>5 tablas: ¡todas!</h3>
+
+    <span class="example-label ex4">Ejemplo 4: el informe completo</span>
+    <div class="code"><pre><span class="cm">-- Informe completo: cada cita con todos sus detalles</span>
+<span class="kw">SELECT</span> c.fecha,
+       m.nombre  <span class="kw">AS</span> mascota,
+       d.nombre  <span class="kw">AS</span> dueño,
+       s.nombre  <span class="kw">AS</span> servicio,
+       s.precio,
+       v.nombre  <span class="kw">AS</span> veterinario
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas     m <span class="kw">ON</span> c.mascota_id     = m.id
+<span class="kw">INNER JOIN</span> duenos       d <span class="kw">ON</span> m.dueño_id       = d.id
+<span class="kw">INNER JOIN</span> servicios    s <span class="kw">ON</span> c.servicio_id    = s.id
+<span class="kw">INNER JOIN</span> veterinarios v <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">ORDER BY</span> c.fecha;</pre></div>
+
+    <h3>Combinando INNER y LEFT en la misma consulta</h3>
+
+    <span class="example-label">Ejemplo 5: dueños con sus mascotas (si tienen) y sus citas</span>
+    <div class="code"><pre><span class="cm">-- Todos los dueños, aunque no tengan mascotas o citas</span>
+<span class="kw">SELECT</span> d.nombre <span class="kw">AS</span> dueño,
+       m.nombre <span class="kw">AS</span> mascota,
+       c.fecha,
+       s.nombre <span class="kw">AS</span> servicio
+<span class="kw">FROM</span> duenos d
+<span class="kw">LEFT JOIN</span> mascotas  m <span class="kw">ON</span> m.dueño_id    = d.id
+<span class="kw">LEFT JOIN</span> citas     c <span class="kw">ON</span> c.mascota_id  = m.id
+<span class="kw">LEFT JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id;</pre></div>
+    <p>Los dueños sin mascotas aparecen con todos los demás campos en NULL. Los dueños con mascotas pero sin citas aparecen con la mascota pero sin fecha ni servicio.</p>
+
+    <div class="note"><span class="tag">🤓 Truco mental</span>Para unir N tablas, piensa en las FK como flechas que puedes seguir: empiezas por una tabla (por ejemplo, CITAS), y cada JOIN te lleva a otra tabla conectada. El ON es la FK que cruzas.</div>
+
+    <h3>Con agregados y GROUP BY</h3>
+
+    <span class="example-label ex2">Ejemplo 6: total facturado por cada veterinario</span>
+    <div class="code"><pre><span class="kw">SELECT</span> v.nombre <span class="kw">AS</span> veterinario,
+       <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total_citas,
+       <span class="kw">SUM</span>(s.precio) <span class="kw">AS</span> total_facturado
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> veterinarios v <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">INNER JOIN</span> servicios    s <span class="kw">ON</span> c.servicio_id    = s.id
+<span class="kw">GROUP BY</span> v.nombre;</pre></div>
+
+    <span class="example-label ex3">Ejemplo 7: número de citas por dueño</span>
+    <div class="code"><pre><span class="kw">SELECT</span> d.nombre <span class="kw">AS</span> dueño,
+       <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total_citas
+<span class="kw">FROM</span> duenos d
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id  = d.id
+<span class="kw">INNER JOIN</span> citas    c <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">GROUP BY</span> d.nombre
+<span class="kw">ORDER BY</span> total_citas <span class="kw">DESC</span>;</pre></div>
+  </div>
+</section>
+
+<!-- ═══════════ UNIDAD 06 · TALLER 35 EJERCICIOS ═══════════ -->
+<section id="taller" class="unit u6">
+  <div class="wrap">
+    <div class="unit-head">
+      <span class="unit-num">06</span>
+      <h2>Taller: 35 ejercicios de JOIN</h2>
+      <span class="unit-time">⏱ 240 min · laboratorio</span>
+    </div>
+    <p>Resuelve en orden. Cada bloque se enfoca en un concepto, yendo de fácil a difícil. <strong>No abras la solución hasta intentarlo</strong>. Las primeras 5 preguntas las resolverás "a mano"; para las siguientes 30 tendrás que combinar tablas.</p>
+
+    <h3>Bloque A: INNER JOIN de 2 tablas (1-8)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">1</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Muestra el nombre de cada mascota y el nombre de su dueño.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota, d.nombre <span class="kw">AS</span> dueño
+<span class="kw">FROM</span> mascotas m
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">2</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Muestra la fecha de cada cita y el nombre de la mascota atendida.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha, m.nombre <span class="kw">AS</span> mascota
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> c.mascota_id = m.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">3</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Muestra el nombre y precio del servicio de cada cita.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha, s.nombre <span class="kw">AS</span> servicio, s.precio
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">4</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Muestra la fecha de cada cita y el veterinario que la atendió.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha, v.nombre <span class="kw">AS</span> veterinario
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> veterinarios v <span class="kw">ON</span> c.veterinario_id = v.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">5</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Muestra el nombre de cada mascota y la especie junto con el nombre de su dueño.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota, m.especie, d.nombre <span class="kw">AS</span> dueño
+<span class="kw">FROM</span> mascotas m
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">6</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Muestra las citas que fueron atendidas por la Dra. Marta León (pista: filtra por veterinario_id = 1 o por nombre).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha, m.nombre <span class="kw">AS</span> mascota
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> veterinarios v <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">WHERE</span> v.nombre = <span class="str">'Dra. Marta León'</span>;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">7</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Muestra las mascotas que son de Ana Torres.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota, m.especie
+<span class="kw">FROM</span> mascotas m
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">WHERE</span> d.nombre = <span class="str">'Ana Torres'</span>;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">8</span><span class="ex-level easy">Fácil</span></div><div class="ex-body">
+      <p>Muestra los servicios que cuestan más de 40000 y que se han prestado al menos una vez.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT DISTINCT</span> s.nombre, s.precio
+<span class="kw">FROM</span> servicios s
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">WHERE</span> s.precio &gt; <span class="num">40000</span>;</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque B: INNER JOIN con agregados (9-14)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">9</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuántas citas ha atendido cada veterinario?</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> v.nombre, <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total
+<span class="kw">FROM</span> veterinarios v
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">GROUP BY</span> v.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">10</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuántas veces se ha prestado cada servicio?</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> s.nombre, <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> veces_prestado
+<span class="kw">FROM</span> servicios s
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> s.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">11</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuántas mascotas tiene cada dueño?</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre, <span class="kw">COUNT</span>(m.id) <span class="kw">AS</span> mascotas
+<span class="kw">FROM</span> duenos d
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">GROUP BY</span> d.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">12</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuál es el total facturado por cada veterinario (suma de precios de los servicios)?</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> v.nombre, <span class="kw">SUM</span>(s.precio) <span class="kw">AS</span> total_facturado
+<span class="kw">FROM</span> veterinarios v
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> v.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">13</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuál es el precio promedio de los servicios que ha prestado cada veterinario?</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> v.nombre, <span class="kw">AVG</span>(s.precio) <span class="kw">AS</span> precio_promedio
+<span class="kw">FROM</span> veterinarios v
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> v.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">14</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuánto ha gastado cada dueño en la veterinaria? (suma de precios de servicios de sus mascotas)</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre, <span class="kw">SUM</span>(s.precio) <span class="kw">AS</span> total_gastado
+<span class="kw">FROM</span> duenos d
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> d.nombre;</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque C: LEFT JOIN básico (15-20)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">15</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Muestra todos los dueños y sus mascotas (si tienen). Los dueños sin mascotas deben aparecer.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre <span class="kw">AS</span> dueño, m.nombre <span class="kw">AS</span> mascota
+<span class="kw">FROM</span> duenos d
+<span class="kw">LEFT JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">16</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Muestra todas las mascotas y sus citas (si las tienen). Las mascotas sin citas deben aparecer.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota, c.fecha
+<span class="kw">FROM</span> mascotas m
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">17</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Muestra todos los servicios y sus citas (si existen). Los servicios sin citas deben aparecer.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> s.nombre, s.precio, c.fecha
+<span class="kw">FROM</span> servicios s
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.servicio_id = s.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">18</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Muestra todos los veterinarios y sus citas (si tienen).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> v.nombre, v.especialidad, c.fecha
+<span class="kw">FROM</span> veterinarios v
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.veterinario_id = v.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">19</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Encuentra los dueños que NO tienen ninguna mascota registrada.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre
+<span class="kw">FROM</span> duenos d
+<span class="kw">LEFT JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">WHERE</span> m.id <span class="kw">IS NULL</span>;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">20</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>Encuentra los servicios que NUNCA se han prestado.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> s.nombre, s.precio
+<span class="kw">FROM</span> servicios s
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">WHERE</span> c.id <span class="kw">IS NULL</span>;</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque D: LEFT JOIN con agregados (21-25)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">21</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuántas mascotas tiene cada dueño? Incluye los dueños con 0 mascotas.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre, <span class="kw">COUNT</span>(m.id) <span class="kw">AS</span> total_mascotas
+<span class="kw">FROM</span> duenos d
+<span class="kw">LEFT JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">GROUP BY</span> d.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">22</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuántas citas ha tenido cada mascota? Incluye las mascotas con 0 citas.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre, <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total_citas
+<span class="kw">FROM</span> mascotas m
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">GROUP BY</span> m.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">23</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuántas citas ha atendido cada veterinario? Incluye los veterinarios con 0 citas.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> v.nombre, <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total_citas
+<span class="kw">FROM</span> veterinarios v
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">GROUP BY</span> v.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">24</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuántas veces se ha prestado cada servicio? Incluye los que nunca se han prestado.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> s.nombre, <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> veces_prestado
+<span class="kw">FROM</span> servicios s
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> s.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">25</span><span class="ex-level med">Medio</span></div><div class="ex-body">
+      <p>¿Cuánto ha gastado cada dueño? Incluye los que no han gastado nada (0).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre, <span class="kw">ISNULL</span>(<span class="kw">SUM</span>(s.precio), <span class="num">0</span>) <span class="kw">AS</span> total_gastado
+<span class="kw">FROM</span> duenos d
+<span class="kw">LEFT JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">LEFT JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> d.nombre;</pre></div>
+      <p>Usamos ISNULL para mostrar 0 en lugar de NULL cuando el dueño no ha tenido citas.</p></div></details>
+    </div></div>
+
+    <h3>Bloque E: JOINs múltiples de 3, 4 y 5 tablas (26-32)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">26</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Muestra la fecha, nombre de la mascota y nombre del dueño de cada cita.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha, m.nombre <span class="kw">AS</span> mascota, d.nombre <span class="kw">AS</span> dueño
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">27</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Muestra la fecha, nombre de la mascota, servicio y precio de cada cita.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha, m.nombre <span class="kw">AS</span> mascota, s.nombre <span class="kw">AS</span> servicio, s.precio
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">28</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Muestra fecha, mascota, dueño, servicio y veterinario de cada cita (4 JOINs).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha,
+       m.nombre <span class="kw">AS</span> mascota,
+       d.nombre <span class="kw">AS</span> dueño,
+       s.nombre <span class="kw">AS</span> servicio,
+       v.nombre <span class="kw">AS</span> veterinario
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">INNER JOIN</span> veterinarios v <span class="kw">ON</span> c.veterinario_id = v.id;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">29</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Lista todas las citas del 2026-09-03 con todos sus detalles (mascota, dueño, servicio, veterinario).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> c.fecha, m.nombre <span class="kw">AS</span> mascota, d.nombre <span class="kw">AS</span> dueño,
+       s.nombre <span class="kw">AS</span> servicio, v.nombre <span class="kw">AS</span> veterinario
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">INNER JOIN</span> veterinarios v <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">WHERE</span> c.fecha = <span class="str">'2026-09-03'</span>;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">30</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>¿Cuántas citas y cuánto total facturado tiene cada dueño? Incluye dueños con 0 citas.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre,
+       <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total_citas,
+       <span class="kw">ISNULL</span>(<span class="kw">SUM</span>(s.precio), <span class="num">0</span>) <span class="kw">AS</span> total_facturado
+<span class="kw">FROM</span> duenos d
+<span class="kw">LEFT JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">LEFT JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> d.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">31</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>¿Qué servicios ha prestado cada veterinario? Muestra nombre del veterinario, servicio y cantidad de veces.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> v.nombre <span class="kw">AS</span> veterinario,
+       s.nombre <span class="kw">AS</span> servicio,
+       <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> veces
+<span class="kw">FROM</span> citas c
+<span class="kw">INNER JOIN</span> veterinarios v <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> v.nombre, s.nombre;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">32</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>Lista todas las mascotas con su dueño, el número total de citas y el total gastado. Incluye mascotas sin citas.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre <span class="kw">AS</span> dueño,
+       m.nombre <span class="kw">AS</span> mascota,
+       <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total_citas,
+       <span class="kw">ISNULL</span>(<span class="kw">SUM</span>(s.precio), <span class="num">0</span>) <span class="kw">AS</span> total_gastado
+<span class="kw">FROM</span> mascotas m
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">LEFT JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">LEFT JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> d.nombre, m.nombre;</pre></div></div></details>
+    </div></div>
+
+    <h3>Bloque F: retos avanzados (33-35)</h3>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">33</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>🏆 ¿Cuáles son los dueños que han gastado más de 50000 en la veterinaria? Ordena por gasto descendente.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> d.nombre, <span class="kw">SUM</span>(s.precio) <span class="kw">AS</span> total_gastado
+<span class="kw">FROM</span> duenos d
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">GROUP BY</span> d.nombre
+<span class="kw">HAVING</span> <span class="kw">SUM</span>(s.precio) &gt; <span class="num">50000</span>
+<span class="kw">ORDER BY</span> total_gastado <span class="kw">DESC</span>;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">34</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>🏆 Encuentra las mascotas que han tenido MÁS de 2 citas. Muestra el nombre de la mascota, su dueño y el número de citas.</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="kw">SELECT</span> m.nombre <span class="kw">AS</span> mascota, d.nombre <span class="kw">AS</span> dueño,
+       <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total_citas
+<span class="kw">FROM</span> mascotas m
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">GROUP BY</span> m.nombre, d.nombre
+<span class="kw">HAVING</span> <span class="kw">COUNT</span>(c.id) &gt; <span class="num">2</span>;</pre></div></div></details>
+    </div></div>
+
+    <div class="ex-block"><div class="ex-head"><span class="ex-num">35</span><span class="ex-level hard">Difícil</span></div><div class="ex-body">
+      <p>🏆 Reto final: genera el "informe mensual" completo. Para cada veterinario muestra: nombre, cantidad de citas, cantidad de dueños distintos atendidos, total facturado, y el nombre del servicio más prestado (pista: para el servicio más prestado puedes dejarlo como subconsulta o resolverlo en BD·111).</p>
+      <details class="qa sol"><summary>Ver solución</summary><div><div class="code"><pre><span class="cm">-- Versión base: sin el servicio más prestado (tema de BD·111)</span>
+<span class="kw">SELECT</span> v.nombre <span class="kw">AS</span> veterinario,
+       <span class="kw">COUNT</span>(c.id) <span class="kw">AS</span> total_citas,
+       <span class="kw">COUNT</span>(<span class="kw">DISTINCT</span> d.id) <span class="kw">AS</span> dueños_distintos,
+       <span class="kw">SUM</span>(s.precio) <span class="kw">AS</span> total_facturado
+<span class="kw">FROM</span> veterinarios v
+<span class="kw">INNER JOIN</span> citas c <span class="kw">ON</span> c.veterinario_id = v.id
+<span class="kw">INNER JOIN</span> servicios s <span class="kw">ON</span> c.servicio_id = s.id
+<span class="kw">INNER JOIN</span> mascotas m <span class="kw">ON</span> c.mascota_id = m.id
+<span class="kw">INNER JOIN</span> duenos d <span class="kw">ON</span> m.dueño_id = d.id
+<span class="kw">GROUP BY</span> v.nombre;</pre></div>
+      <p>Si resolviste esto, tu dominio de JOIN está listo. El servicio más prestado requiere subconsultas (BD·111) o funciones de ventana (curso avanzado).</p></div></details>
+    </div></div>
+
+    <h3 style="margin-top:2.5rem">Autoevaluación</h3>
+    <p>Marca con honestidad y suma tus ✔:</p>
+    <ul class="tick">
+      <li>Resolví los 8 ejercicios del bloque A (INNER JOIN 2 tablas).</li>
+      <li>Resolví los 6 ejercicios del bloque B (INNER JOIN + agregados).</li>
+      <li>Resolví los 6 ejercicios del bloque C (LEFT JOIN básico).</li>
+      <li>Resolví los 5 ejercicios del bloque D (LEFT JOIN + agregados).</li>
+      <li>Resolví los 7 ejercicios del bloque E (JOINs múltiples).</li>
+      <li>Resolví al menos 2 de los 3 retos finales.</li>
+      <li>Sé explicar cuándo usar INNER y cuándo LEFT.</li>
+      <li>Puedo unir 4 tablas en una sola consulta.</li>
+    </ul>
+    <div class="score-note">
+      <span class="s1">7–8 ✔ ¡Dominas JOIN! Listo para BD·111: Subconsultas.</span>
+      <span class="s2">4–6 ✔ Repite los bloques que te fallaron</span>
+      <span class="s3">0–3 ✔ Vuelve a la Unidad 02 y practica INNER JOIN</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CHULETA ═══════════ -->
+<section id="chuleta" class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <h2>Chuleta de JOIN</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Tipo</th><th>Sintaxis</th><th>Qué devuelve</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">INNER JOIN</td><td class="mono">FROM a INNER JOIN b ON a.fk = b.pk</td><td>Solo las filas que coinciden en ambas tablas.</td></tr>
+          <tr><td class="mono">LEFT JOIN</td><td class="mono">FROM a LEFT JOIN b ON a.fk = b.pk</td><td>Todas las filas de <em>a</em>. Las que no coinciden salen con NULL.</td></tr>
+          <tr><td class="mono">JOIN múltiple</td><td class="mono">... JOIN b ... JOIN c ON ...</td><td>Se encadenan los JOINs uno tras otro.</td></tr>
+          <tr><td class="mono">Alias</td><td class="mono">FROM mascotas m</td><td>Permite usar <span class="mono">m.nombre</span> en lugar de <span class="mono">mascotas.nombre</span>.</td></tr>
+          <tr><td class="mono">Filtro en JOIN</td><td class="mono">... JOIN b ON ... WHERE condición</td><td>WHERE filtra después del JOIN.</td></tr>
+          <tr><td class="mono">Agregados con JOIN</td><td class="mono">... GROUP BY tabla.columna</td><td>Combina JOIN con COUNT, SUM, AVG, etc.</td></tr>
+          <tr><td class="mono">LEFT JOIN + IS NULL</td><td class="mono">... WHERE b.id IS NULL</td><td>Encuentra registros de <em>a</em> que no tienen correspondencia en <em>b</em>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><span class="tag">🔜 Próxima entrega</span>BD·111: <strong>Subconsultas</strong>. Aprenderás a meter un SELECT dentro de otro SELECT, para resolver problemas que JOIN no puede resolver directamente (como "los productos más caros que el promedio").</div>
+  </div>
+</section>
+
+<!-- ═══════════ GLOSARIO ═══════════ -->
+<section class="unit">
+  <div class="wrap">
+    <div class="unit-head">
+      <h2>Glosario de esta entrega</h2>
+      <span class="unit-time">Consulta rápida</span>
+    </div>
+    <dl class="gloss">
+      <div class="term"><dt>JOIN</dt><dd>Operación que combina filas de dos o más tablas basándose en una condición de unión.</dd></div>
+      <div class="term"><dt>INNER JOIN</dt><dd>Devuelve solo las filas que tienen correspondencia en ambas tablas.</dd></div>
+      <div class="term"><dt>LEFT JOIN</dt><dd>Devuelve todas las filas de la tabla izquierda, y las coincidencias de la derecha (o NULL si no hay coincidencia).</dd></div>
+      <div class="term"><dt>ON</dt><dd>Cláusula que define la condición de unión entre las tablas (típicamente FK = PK).</dd></div>
+      <div class="term"><dt>Alias (AS)</dt><dd>Apodo que se le da a una tabla o columna para referirse a ella con menos caracteres.</dd></div>
+      <div class="term"><dt>Producto cartesiano</dt><dd>Resultado incorrecto de hacer JOIN sin ON: combina cada fila de una tabla con cada fila de la otra.</dd></div>
+      <div class="term"><dt>Coincidencia</dt><dd>Fila que cumple la condición ON y por tanto aparece en el resultado de un INNER JOIN.</dd></div>
+      <div class="term"><dt>NULL en JOIN</dt><dd>Valor que aparece en las columnas de la tabla derecha cuando un LEFT JOIN no encuentra coincidencia.</dd></div>
+    </dl>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="foot-brand">BD·110 — JOIN: unir tablas (SQL Server)</div>
+      <small>Fase 4 · Consultar avanzado del tutorial de bases de datos · Versión 1.0 · 2026 · Permitida su reproducción con fines educativos citando la fuente.<br>Construido solo con HTML y CSS — cero JavaScript. También puedes imprimirlo (Ctrl/Cmd + P).</small>
+    </div>
+    <div class="top-link"><a href="#inicio">↑ Volver arriba</a></div>
+  </div>
+</footer>
+</body>
+</html>
